@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>内容营销现状诊断与核心机会点 Guizang Slides</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@300;400;500;600&family=Noto+Serif+SC:wght@300;400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* ============ 主题色(默认:🖋 墨水经典) ============
+       切换主题:从 references/themes.md 复制对应的 :root 块
+       整体替换这几行(--ink / --ink-rgb / --paper / --paper-rgb)
+       其他地方散落的 rgba() 都走 var(--ink-rgb) / var(--paper-rgb),无需逐处改 */
+    --ink:#0f2f27;
+    --ink-rgb:15,47,39;
+    --paper:#f7f4ee;
+    --paper-rgb:247,244,238;
+    --paper-tint:#ece6da;
+    --ink-tint:#18181a;
+
+    /* ============ 字体(跨主题固定) ============ */
+    --mono:"IBM Plex Mono",ui-monospace,monospace;
+    --serif-en:"Playfair Display","Source Serif 4",Georgia,serif;
+    --serif-body-en:"Source Serif 4",Georgia,serif;
+    --serif-zh:"Noto Serif SC",source-han-serif-sc,serif;
+    --sans-zh:"Noto Sans SC",source-han-sans-sc,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);color:var(--paper);font-family:var(--sans-zh);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+
+  /* ============ WebGL 双背景 ============ */
+  canvas.bg{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;display:block;transition:opacity 1.2s ease}
+  canvas#bg-light{opacity:0}
+  canvas#bg-dark{opacity:1}
+  body.light-bg canvas#bg-light{opacity:1}
+  body.light-bg canvas#bg-dark{opacity:0}
+
+  /* ============ Deck 容器 + 翻页 ============ */
+  /* width: NSLIDES * 100vw，会在 JS 里动态矫正 */
+  #deck{position:fixed;inset:0;width:10000vw;height:100vh;display:flex;flex-wrap:nowrap;transition:transform .9s cubic-bezier(.77,0,.175,1);z-index:10;will-change:transform}
+  .slide{width:100vw;height:100vh;flex:0 0 100vw;position:relative;padding:6vh 6vw 10vh 6vw;display:flex;flex-direction:column;overflow:hidden}
+  .slide.light{color:var(--ink)}
+  .slide.dark{color:var(--paper)}
+
+  /* 默认页：遮罩较厚，保证文字可读 */
+  .slide::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;transition:background .7s ease}
+  .slide.light::before{background:rgba(var(--paper-rgb),.78);backdrop-filter:blur(3px)}
+  .slide.dark::before{background:rgba(var(--ink-rgb),.78);backdrop-filter:blur(3px)}
+  /* Hero 页：遮罩大幅降低，让 WebGL 背景明显透出 */
+  .slide.hero.light::before{background:rgba(var(--paper-rgb),.16);backdrop-filter:none}
+  .slide.hero.dark::before{background:rgba(var(--ink-rgb),.12);backdrop-filter:none}
+  /* Hero 页顶底微弱渐隐，保证 chrome/foot 区域可读 */
+  .slide.hero::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none}
+  .slide.hero.light::after{background:linear-gradient(180deg,rgba(var(--paper-rgb),.28) 0%,rgba(var(--paper-rgb),0) 14%,rgba(var(--paper-rgb),0) 86%,rgba(var(--paper-rgb),.28) 100%)}
+  .slide.hero.dark::after{background:linear-gradient(180deg,rgba(var(--ink-rgb),.32) 0%,rgba(var(--ink-rgb),0) 14%,rgba(var(--ink-rgb),0) 86%,rgba(var(--ink-rgb),.32) 100%)}
+
+  /* ============ Magazine chrome：顶部 meta + 底部 foot ============ */
+  .chrome{display:flex;justify-content:space-between;align-items:flex-start;font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;opacity:.7}
+  .chrome .left,.chrome .right{display:flex;gap:2.4em;align-items:center}
+  .chrome .sep{width:40px;height:1px;background:currentColor;opacity:.4}
+  .foot{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;opacity:.55}
+  .foot .title{font-family:var(--serif-zh);font-weight:400;letter-spacing:.05em;text-transform:none;opacity:.75;font-size:13px}
+
+  .tag{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.24em;text-transform:uppercase;padding:6px 14px;border:1px solid currentColor;opacity:.85}
+  .rule{width:100%;height:1px;background:currentColor;opacity:.25;margin:3vh 0}
+  .rule.v{width:1px;height:100%;margin:0}
+
+  /* ============ 字体规则 ============
+     · 衬线（Noto Serif SC / Playfair）：大标题、重点金句、数字
+     · 非衬线（Noto Sans SC）：正文描述、body、补充说明
+     · 等宽（IBM Plex Mono）：kicker、meta 小标签、foot 右侧
+  */
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.3em;text-transform:uppercase;opacity:.6;margin-bottom:2.6vh}
+  .display{font-family:var(--serif-en);font-weight:700;font-size:11vw;line-height:.92;letter-spacing:-.025em}
+  .display-zh{font-family:var(--serif-zh);font-weight:700;font-size:7.8vw;line-height:1.04;letter-spacing:-.005em}
+  .h1-zh{font-family:var(--serif-zh);font-weight:700;font-size:4.6vw;line-height:1.12;letter-spacing:-.005em}
+  .h2-zh{font-family:var(--serif-zh);font-weight:600;font-size:3.2vw;line-height:1.2;letter-spacing:0}
+  .h3-zh{font-family:var(--serif-zh);font-weight:500;font-size:1.9vw;line-height:1.35}
+  .body-zh{font-family:var(--sans-zh);font-weight:400;font-size:max(15px,1.22vw);line-height:1.75;opacity:.82;letter-spacing:.01em}
+  .body-serif{font-family:var(--serif-zh);font-weight:400;font-size:max(15px,1.3vw);line-height:1.65;opacity:.88}
+  .lead{font-family:var(--serif-zh);font-weight:400;font-size:1.9vw;line-height:1.4;opacity:.85}
+  .meta{font-family:var(--mono);font-size:max(11px,.88vw);letter-spacing:.16em;text-transform:uppercase;opacity:.6}
+  .big-num{font-family:var(--serif-en);font-weight:800;font-size:10vw;line-height:.85;letter-spacing:-.03em;font-feature-settings:"tnum"}
+  .mid-num{font-family:var(--serif-en);font-weight:700;font-size:5.5vw;line-height:.88;letter-spacing:-.02em;font-feature-settings:"tnum"}
+  .ghost{font-family:var(--serif-en);font-weight:900;font-size:34vw;line-height:.8;opacity:.06;letter-spacing:-.04em;position:absolute;font-feature-settings:"tnum"}
+  em{font-style:italic;font-family:var(--serif-en)}
+  .en{font-family:var(--serif-en);font-style:italic;font-weight:500}
+
+  /* ============ 布局工具 ============ */
+  .col{display:flex;flex-direction:column;gap:2.4vh}
+  .row{display:flex;align-items:center;gap:3vw}
+  .grid-6{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:4vw 6vw;flex:1;align-content:center;padding:2vh 0}
+  .grid-9{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:3vh 4vw;flex:1;align-content:center}
+  .grid-4{display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);gap:4vh 6vw;flex:1;align-content:center}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:4vw;flex:1;align-content:center}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:4vw;flex:1;align-items:center}
+  .split-55{display:grid;grid-template-columns:55fr 45fr;gap:5vw;flex:1;align-items:stretch}
+  .fill{flex:1}
+  .center{align-items:center;justify-content:center;text-align:center}
+  .bottom-left{position:absolute;left:6vw;bottom:9vh;max-width:50vw}
+  .bottom-right{position:absolute;right:6vw;bottom:9vh;max-width:50vw;text-align:right}
+  .top-right{position:absolute;right:6vw;top:6vh;text-align:right}
+
+  /* ============ Stat（数字矩阵） ============ */
+  .stat{display:flex;flex-direction:column;gap:1vh;align-items:flex-start}
+  .stat .n{font-family:var(--serif-en);font-weight:800;font-size:8vw;line-height:.88;letter-spacing:-.03em;font-feature-settings:"tnum"}
+  .stat .l{font-family:var(--sans-zh);font-size:max(13px,1.05vw);opacity:.7;margin-top:1vh;font-weight:400;line-height:1.5}
+  .stat .m{font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;opacity:.5;margin-bottom:.2vh}
+
+  /* ============ Callout（引用框） ============ */
+  .callout{padding:3vh 2.4vw;border-left:3px solid currentColor;position:relative;font-family:var(--serif-zh);font-size:max(15px,1.2vw);line-height:1.55;opacity:.92}
+  .slide.light .callout{background:rgba(var(--ink-rgb),.05)}
+  .slide.dark .callout{background:rgba(var(--paper-rgb),.06)}
+  .callout .cite{display:block;margin-top:1.6vh;font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.6}
+  .callout .q-big{font-family:var(--serif-zh);font-weight:600;font-size:max(17px,1.6vw);line-height:1.42}
+
+  /* ============ Platform（平台卡） ============ */
+  .plat{display:flex;flex-direction:column;justify-content:flex-end;padding:2vh 0;border-top:1px solid currentColor;border-color:rgba(127,127,127,.35)}
+  .plat .name{font-family:var(--serif-zh);font-weight:700;font-size:1.8vw;margin-bottom:.6vh}
+  .plat .nb{font-family:var(--serif-en);font-weight:700;font-size:3.2vw;letter-spacing:-.02em;line-height:1;font-feature-settings:"tnum"}
+  .plat .sub{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;opacity:.55;margin-top:.6vh}
+  .plat .fill{font-family:var(--sans-zh);font-weight:300;font-size:2.4vw;opacity:.28;letter-spacing:-.01em;line-height:1}
+
+  /* ============ Rowline（表格行） ============ */
+  .rowline{display:grid;grid-template-columns:1fr 2fr 1fr;gap:2vw;padding:2.2vh 0;border-top:1px solid currentColor;align-items:center;border-color:rgba(127,127,127,.25)}
+  .rowline:last-child{border-bottom:1px solid currentColor;border-color:rgba(127,127,127,.25)}
+  .rowline .k{font-family:var(--serif-zh);font-weight:700;font-size:1.7vw}
+  .rowline .v{font-family:var(--sans-zh);font-weight:400;font-size:max(14px,1.2vw);opacity:.85;line-height:1.55}
+  .rowline .m{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.6;justify-self:end}
+
+  /* ============ Pillar（支柱卡片） ============ */
+  .pillar{display:flex;flex-direction:column;gap:1.8vh}
+  .pillar .ic{font-family:var(--serif-en);font-style:italic;font-size:2.6vw;opacity:.45;font-weight:400}
+  .pillar .ic svg{width:2.8vw;height:2.8vw;stroke-width:1.2;opacity:.7}
+  .pillar .t{font-family:var(--serif-zh);font-weight:700;font-size:2.4vw;line-height:1.1}
+  .pillar .d{font-family:var(--sans-zh);font-weight:400;font-size:max(14px,1.1vw);opacity:.76;line-height:1.6}
+
+  /* ============ Signature / Highlight ============ */
+  .sign{font-family:var(--serif-en);font-style:italic;font-weight:500;font-size:2vw;opacity:.7}
+  .hi{position:relative;display:inline}
+  .slide.dark .hi::after{content:"";position:absolute;left:-.1em;right:-.1em;bottom:-.05em;height:.28em;background:rgba(var(--paper-rgb),.15);z-index:-1}
+  .slide.light .hi::after{content:"";position:absolute;left:-.1em;right:-.1em;bottom:-.05em;height:.28em;background:rgba(var(--ink-rgb),.08);z-index:-1}
+
+  /* ============ Icons（Lucide via CDN） ============ */
+  .ico{width:1em;height:1em;display:inline-block;vertical-align:-.12em;stroke:currentColor;fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+  .ico-lg,.ico-md,.ico-sm{fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
+  .ico-lg{width:2.6vw;height:2.6vw;stroke-width:1.2;display:inline-block}
+  .ico-md{width:1.8vw;height:1.8vw;stroke-width:1.3;display:inline-block;vertical-align:-.4em}
+  .ico-sm{width:1.1vw;height:1.1vw;stroke-width:1.4;display:inline-block;vertical-align:-.15em;opacity:.7}
+
+  /* ============ 图片占位（虚线框，提示设计师位置） ============ */
+  .img-slot{border:1.5px dashed rgba(127,127,127,.4);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1vh;padding:2vh 2vw;font-family:var(--mono);font-size:10px;letter-spacing:.28em;text-transform:uppercase;opacity:.55;position:relative;aspect-ratio:16/9;width:100%;max-height:56vh;margin-inline:auto;box-sizing:border-box}
+  .img-slot::before{content:"";position:absolute;inset:8px;border:1px solid currentColor;opacity:.2}
+  .img-slot .plus{font-size:2vw;font-weight:300;opacity:.5;letter-spacing:0}
+  .img-slot .label{position:relative;z-index:2;text-align:center}
+  .img-slot.r-4x3{aspect-ratio:4/3}
+  .img-slot.r-3x2{aspect-ratio:3/2}
+  .img-slot.r-1x1{aspect-ratio:1/1}
+
+  /* ============ 图片实填框（关键：固定高度 + 只裁底部） ============
+     重要约束：高度用内联 height:Nvh 精确控制，不要用 aspect-ratio（会撑破布局）
+     object-position:top center 保证严禁裁剪顶部和左右，只裁剪底部
+  */
+  .frame-img{overflow:hidden;position:relative;background:rgba(0,0,0,.04);box-sizing:border-box;width:100%;border-radius:4px}
+  .slide.dark .frame-img{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.12)}
+  .frame-img > img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
+  .frame-cap{display:flex;justify-content:space-between;align-items:baseline;gap:1vw;margin-top:.8vh;font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;opacity:.72}
+  .frame-cap .pf{font-family:var(--serif-zh);font-weight:600;font-size:max(13px,1vw);letter-spacing:.04em;text-transform:none;opacity:.94}
+  .frame-cap .nb{font-family:var(--serif-en);font-style:italic;font-size:max(15px,1.2vw);letter-spacing:.02em;text-transform:none;opacity:.88}
+  .frame-cap .idx{font-family:var(--mono);opacity:.5}
+  figure.tile{display:flex;flex-direction:column;margin:0;min-width:0}
+  figure.tile > .frame-img{flex:0 0 auto}
+
+  /* ============ 导航 ============ */
+  #nav{position:fixed;left:50%;bottom:2.6vh;transform:translateX(-50%);z-index:30;display:flex;gap:10px;padding:8px 14px;border-radius:999px;background:rgba(0,0,0,.18);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  #nav .dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.3);cursor:pointer;transition:all .3s ease;border:0;padding:0}
+  #nav .dot:hover{background:rgba(255,255,255,.5);transform:scale(1.15)}
+  #nav .dot.active{background:rgba(255,255,255,.95);width:22px;border-radius:999px}
+  body.light-bg #nav{background:rgba(255,255,255,.25)}
+  body.light-bg #nav .dot{background:rgba(var(--ink-rgb),.25)}
+  body.light-bg #nav .dot.active{background:rgba(var(--ink-rgb),.9)}
+  #hint{position:fixed;bottom:3vh;right:3vw;z-index:30;font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;opacity:.4;mix-blend-mode:difference;color:#aaa}
+
+  /* ============================================================
+     ============ LAYOUTS API · 面向 agent 的类（v2）============
+     所有 layouts.md 中的骨架都基于下面这套命名。
+     如果你在 layouts.md 里看到某个类，它必须在下面有定义。
+     ============================================================ */
+
+  /* ---------- .frame：每页主内容容器 ---------- */
+  .frame{flex:1;display:flex;flex-direction:column;min-height:0}
+  /* 当 .frame 同时加了 grid 类时，grid 的 display:grid 覆盖 flex */
+  .frame.grid-2-7-5,
+  .frame.grid-2-6-6,
+  .frame.grid-2-8-4,
+  .frame.grid-3-3,
+  .frame.grid-6{display:grid}
+
+  /* ---------- 标题层级（API 名称，衬线为主） ---------- */
+  .h-hero{
+    font-family:var(--serif-zh);
+    font-weight:900;
+    font-size:10vw;
+    line-height:.96;
+    letter-spacing:-.02em;
+  }
+  .h-xl{
+    font-family:var(--serif-zh);
+    font-weight:700;
+    font-size:6.2vw;
+    line-height:1.08;
+    letter-spacing:-.01em;
+  }
+  .h-sub{
+    font-family:var(--serif-zh);
+    font-weight:500;
+    font-size:3.1vw;
+    line-height:1.25;
+    letter-spacing:0;
+    opacity:.7;
+  }
+  .h-md{
+    font-family:var(--serif-zh);
+    font-weight:600;
+    font-size:2.3vw;
+    line-height:1.3;
+  }
+  /* 英文标题专用（Playfair 衬线） */
+  .h-hero-en,.h-xl-en{font-family:var(--serif-en);letter-spacing:-.025em}
+
+  /* ---------- lead 引语 ---------- */
+  .lead{
+    font-family:var(--serif-zh);
+    font-weight:400;
+    font-size:1.75vw;
+    line-height:1.5;
+    opacity:.86;
+  }
+
+  /* ---------- meta-row 底部元数据 ---------- */
+  .meta-row{
+    display:flex;
+    gap:1.2em;
+    align-items:baseline;
+    flex-wrap:wrap;
+    font-family:var(--mono);
+    font-size:max(12px,.92vw);
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    opacity:.6;
+  }
+
+  /* ---------- stat-card（数据大字报用） ---------- */
+  .stat-card{
+    display:flex;
+    flex-direction:column;
+    gap:.8vh;
+    align-items:flex-start;
+    padding-top:1.6vh;
+    border-top:1px solid currentColor;
+    border-color:rgba(127,127,127,.3);
+  }
+  .stat-card .stat-label{
+    font-family:var(--mono);
+    font-size:max(10px,.78vw);
+    letter-spacing:.24em;
+    text-transform:uppercase;
+    opacity:.55;
+  }
+  .stat-card .stat-nb{
+    font-family:var(--serif-en);
+    font-weight:800;
+    font-size:5.8vw;
+    line-height:.9;
+    letter-spacing:-.03em;
+    font-feature-settings:"tnum";
+    margin-top:.4vh;
+  }
+  .stat-card .stat-nb .stat-unit{
+    font-family:var(--serif-zh);
+    font-weight:500;
+    font-size:.38em;
+    letter-spacing:0;
+    opacity:.72;
+    margin-left:.14em;
+  }
+  .stat-card .stat-note{
+    font-family:var(--sans-zh);
+    font-weight:400;
+    font-size:max(13px,1.05vw);
+    line-height:1.5;
+    opacity:.72;
+    margin-top:.6vh;
+  }
+  /* 当 stat-card 用于 grid-4（2x2），数字可以更大 */
+  .grid-4 .stat-card .stat-nb{font-size:7.5vw}
+  /* 当只有 3 个，字也可以稍大 */
+  .grid-3 .stat-card .stat-nb{font-size:6.8vw}
+
+  /* ---------- pipeline（流水线） ---------- */
+  .pipeline-section{
+    margin-top:4.4vh;
+    padding-top:2.8vh;
+    border-top:1px dashed rgba(127,127,127,.32);
+  }
+  .pipeline-section:first-of-type{
+    border-top:0;
+    padding-top:0;
+    margin-top:3vh;
+  }
+  .pipeline-label{
+    font-family:var(--mono);
+    font-size:max(11px,.85vw);
+    letter-spacing:.24em;
+    text-transform:uppercase;
+    opacity:.62;
+    margin-bottom:2.2vh;
+  }
+  .pipeline{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:1.2vw;
+  }
+  .pipeline[data-cols="3"]{grid-template-columns:repeat(3,1fr)}
+  .pipeline[data-cols="4"]{grid-template-columns:repeat(4,1fr)}
+  .pipeline[data-cols="6"]{grid-template-columns:repeat(6,1fr)}
+  .step{
+    display:flex;
+    flex-direction:column;
+    gap:.8vh;
+    padding-top:1.4vh;
+    border-top:1px solid currentColor;
+    border-color:rgba(127,127,127,.35);
+  }
+  .step-nb{
+    font-family:var(--serif-en);
+    font-style:italic;
+    font-weight:500;
+    font-size:1.15vw;
+    opacity:.45;
+  }
+  .step-title{
+    font-family:var(--sans-zh);
+    font-weight:700;
+    font-size:1.55vw;
+    letter-spacing:.01em;
+    line-height:1.2;
+  }
+  .step-desc{
+    font-family:var(--sans-zh);
+    font-weight:400;
+    font-size:max(12px,.95vw);
+    line-height:1.45;
+    opacity:.72;
+  }
+
+  /* ---------- 网格（layouts.md 所用） ---------- */
+  /* 这些类独立挂到任何容器上都能生效，不依赖 .frame 复合选择器 */
+  .grid-2-7-5{display:grid;grid-template-columns:7fr 5fr;gap:3vw 4vh;align-items:start}
+  .grid-2-6-6{display:grid;grid-template-columns:1fr 1fr;gap:3vw 4vh;align-items:start}
+  .grid-2-8-4{display:grid;grid-template-columns:8fr 4fr;gap:3vw 4vh;align-items:start}
+  .grid-3-3{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    grid-auto-rows:minmax(0,1fr);
+    gap:2.4vh 2vw;
+  }
+  /* grid-6 已在旧样式里定义为 3x2，这里仅补 align */
+
+  /* ---------- 图片 frame-img（layouts.md 主命名） ---------- */
+  /* 在旧样式里已定义，这里补 img-cap 命名别名与增强 */
+  figure.frame-img{margin:0;display:flex;flex-direction:column;min-width:0}
+  .img-cap{
+    display:block;
+    margin-top:.8vh;
+    font-family:var(--mono);
+    font-size:max(10px,.8vw);
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    opacity:.6;
+  }
+  /* callout src 命名别名 */
+  .callout-src{
+    display:block;
+    margin-top:1.6vh;
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    opacity:.6;
+  }
+
+  /* ---------- chrome & foot 补位（layouts.md 简单写法） ---------- */
+  .chrome{font-family:var(--mono);font-size:max(11px,.78vw);letter-spacing:.2em;text-transform:uppercase;opacity:.62}
+  .foot{font-family:var(--mono);font-size:max(11px,.78vw);letter-spacing:.18em;text-transform:uppercase;opacity:.5}
+
+  /* ---------- 响应式降级 ---------- */
+  @media (max-width:900px){
+    .display{font-size:16vw}
+    .display-zh{font-size:12vw}
+    .h1-zh{font-size:7vw}
+    .h-hero{font-size:14vw}
+    .h-xl{font-size:9vw}
+    .pipeline{grid-template-columns:repeat(2,1fr)}
+    .grid-2-7-5,.grid-2-6-6,.grid-2-8-4{grid-template-columns:1fr}
+  }
+
+  body.locked #deck,body.locked #hint,body.locked #nav,body.locked canvas.bg{filter:blur(12px);pointer-events:none;user-select:none}
+  #pass-gate{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(var(--ink-rgb),.72);backdrop-filter:blur(18px);color:var(--paper)}
+  body.locked #pass-gate{display:flex}
+  .pass-card{width:min(420px,100%);border:1px solid rgba(var(--paper-rgb),.22);background:rgba(var(--ink-rgb),.82);box-shadow:0 28px 80px rgba(0,0,0,.28);padding:32px;border-radius:18px}
+  .pass-card h1{font-family:var(--serif-zh);font-size:28px;font-weight:600;line-height:1.25;margin-bottom:12px}
+  .pass-card p{font-size:14px;line-height:1.7;opacity:.72;margin-bottom:22px}
+  .pass-card label{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;opacity:.72;margin-bottom:8px}
+  .pass-row{display:flex;gap:10px}
+  .pass-row input{min-width:0;flex:1;border:1px solid rgba(var(--paper-rgb),.28);border-radius:10px;background:rgba(var(--paper-rgb),.08);color:var(--paper);font:16px var(--sans-zh);padding:12px 14px;outline:none}
+  .pass-row input:focus{border-color:rgba(var(--paper-rgb),.68)}
+  .pass-row button{border:0;border-radius:10px;background:var(--paper);color:var(--ink);font:600 15px var(--sans-zh);padding:0 18px;cursor:pointer}
+  .pass-error{min-height:20px;margin-top:12px;color:#ffd6d6;font-size:13px;opacity:.9}
+</style>
+</head>
+<body class="locked">
+
+<div id="pass-gate" role="dialog" aria-modal="true" aria-labelledby="pass-title">
+  <form class="pass-card" id="pass-form">
+    <h1 id="pass-title">请输入演示口令</h1>
+    <p>验证通过后即可查看本次 slides。口令只保存在当前浏览器会话中。</p>
+    <label for="pass-input">Passcode</label>
+    <div class="pass-row">
+      <input id="pass-input" type="password" autocomplete="current-password" autofocus>
+      <button type="submit">进入</button>
+    </div>
+    <div class="pass-error" id="pass-error" aria-live="polite"></div>
+  </form>
+</div>
+
+<canvas id="bg-dark" class="bg"></canvas>
+<canvas id="bg-light" class="bg"></canvas>
+<div id="hint">← → 翻页 · ESC 索引</div>
+
+<div id="deck">
+
+<!-- ============================================================
+     SLIDES 插入区 · 在此处填充所有 <section class="slide ..."> 页面
+     每页模板参考 references/page-patterns.md
+     页面组件参考 references/components.md
+     ============================================================ -->
+
+
+<section class="slide hero light">
+  <div class="chrome">
+    <div>Industry Context Opening</div>
+    <div>01 / 14</div>
+  </div>
+  <div class="frame" style="position:relative;padding-top:0">
+    <div style="position:absolute;left:0;right:0;top:calc(66.666vh - 9.2vw)">
+      <div class="kicker" style="margin-bottom:1.4vh">内容营销诊断提案</div>
+      <h1 class="h-hero" style="font-size:5.8vw;line-height:1.08;white-space:nowrap;margin-bottom:2vh">怎样通过内容引流实现增长</h1>
+    </div>
+    <div class="rule" style="position:absolute;left:0;right:0;top:66.666vh;margin:0"></div>
+    <p class="h-sub" style="position:absolute;left:0;right:0;top:calc(66.666vh + 2vh);margin:0">珠宝 酒店跨界营销战略方案</p>
+  </div>
+  <div class="foot">
+    <div>封面</div>
+    <div>Hotel Content Strategy</div>
+  </div>
+</section>
+
+
+<section class="slide light">
+  <div class="chrome">
+    <div>Journey Map Agenda</div>
+    <div>02 / 14</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker">Presentation Journey</div><h2 class="h-xl">议题</h2>
+    
+<div class="grid-4" style="margin-top:5vh;gap:5vh 7vw">
+  <div class="step" style="gap:2vh;padding-top:2.4vh">
+    <div class="step-nb" style="font-size:2.6vw">01</div>
+    <div class="step-title" style="font-size:2.8vw">现状速览</div>
+    <div class="step-desc" style="font-size:max(16px,1.35vw)">现在所处的位置</div>
+  </div>
+  <div class="step" style="gap:2vh;padding-top:2.4vh">
+    <div class="step-nb" style="font-size:2.6vw">02</div>
+    <div class="step-title" style="font-size:2.8vw">核心机会点</div>
+    <div class="step-desc" style="font-size:max(16px,1.35vw)">对手难复制的优势</div>
+  </div>
+  <div class="step" style="gap:2vh;padding-top:2.4vh">
+    <div class="step-nb" style="font-size:2.6vw">03</div>
+    <div class="step-title" style="font-size:2.8vw">战略框架</div>
+    <div class="step-desc" style="font-size:max(16px,1.35vw)">六个月三阶段推进</div>
+  </div>
+  <div class="step" style="gap:2vh;padding-top:2.4vh">
+    <div class="step-nb" style="font-size:2.6vw">04</div>
+    <div class="step-title" style="font-size:2.8vw">合作模式</div>
+    <div class="step-desc" style="font-size:max(16px,1.35vw)">行动方案+智能体工具+陪跑服务</div>
+  </div>
+</div>
+
+  </div>
+  <div class="foot">
+    <div>议程</div>
+    <div>Hotel Content Strategy</div>
+  </div>
+</section>
+
+
+<section class="slide light">
+  <div class="chrome">
+    <div>Current State Diagnosis</div>
+    <div>03 / 14</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker">Setup Tension</div><h2 class="h-xl">现状分析</h2>
+    <p class="h-sub" style="margin-top:1.2vh">基础已具备 但表达与转化尚未打通</p>
+    
+<div class="grid-2-6-6" style="margin-top:3vh">
+  <div class="callout">
+    <div class="q-big">已搭建基础</div>
+    <p class="body-zh" style="margin-top:1vh">微信与抖音已运营 小红书建设中 视频质感较好</p>
+  </div>
+  <div class="callout">
+    <div class="q-big">关键断层</div>
+    <p class="body-zh" style="margin-top:1vh">内容偏硬广 缺少故事感 缺少情绪钩子 缺少稳定转化机制</p>
+  </div>
+</div>
+<div class="rule"></div>
+<p class="lead">拥有珠宝加酒店的独特跨界资产，但内容还未形成可持续差异化叙事</p>
+
+  </div>
+  <div class="foot">
+    <div>现状诊断</div>
+    <div>Hotel Content Strategy</div>
+  </div>
+</section>
+
+
+<section class="slide dark">
+  <div class="chrome">
+    <div>Competitive Sea Pressure</div>
+    <div>04 / 14</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker">Competition Pressure</div><h2 class="h-xl">竞争格局</h2>
+    <p class="h-sub" style="margin-top:1.2vh">市场红海 但跨界赛道仍有空位</p>
+    
+<div class="grid-3" style="margin-top:4vh">
+  <div class="stat-card"><div class="stat-label">Category A</div><div class="h-md">水贝商圈酒店</div><div class="stat-note">内容营销体系化程度低</div></div>
+  <div class="stat-card"><div class="stat-label">Category B</div><div class="h-md">同价位设计酒店</div><div class="stat-note">卖点趋同 缺少记忆点</div></div>
+  <div class="stat-card"><div class="stat-label">Category C</div><div class="h-md">深圳中高端酒店</div><div class="stat-note">商务属性高 距离感强</div></div>
+</div>
+<div class="rule"></div>
+<p class="lead">珠宝 酒店跨界内容赛道 目前几乎没有成熟先行者</p>
+
+  </div>
+  <div class="foot">
+    <div>竞争格局</div>
+    <div>Hotel Content Strategy</div>
+  </div>
+</section>
+
+
+<section class="slide light" style="padding:0">
+  <div class="frame" style="width:100vw;height:100vh;padding:0;margin:0">
+    <img src="images/yaduo.png" alt="亚朵案例整页图" style="width:100%;height:100%;object-fit:cover;display:block">
+  </div>
+</section>
+
+
+<section class="slide hero light">
+  <div class="chrome">
+    <div>Unique Moat Proof</div>
+    <div>06 / 14</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker">Resolution Moat</div><h2 class="h-xl">不可复制的四重护城河</h2>
+
+<div class="grid-4" style="margin-top:2.6vh">
+  <!-- 01 行业地利：地利+资源合并，上升到艺术文化和审美 -->
+  <div style="display:flex;flex-direction:column;gap:1vh;padding-top:1.4vh;border-top:2px solid currentColor;border-color:rgba(127,127,127,.4)">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;opacity:.55">01 · 行业地利</div>
+    <div class="h-md">世界珠宝心脏，美学策源地</div>
+    <div class="body-zh" style="font-size:max(13px,1.0vw);line-height:1.58;opacity:.84">
+      中国70%以上的黄金珠宝产自水贝，全产业链贯通——从原料采购、设计研发到加工批发。这不仅是一条供应链，更是一座城市级别的艺术审美蓄水池与工匠精神基地。
+    </div>
+  </div>
+  <!-- 02 既有客群：行业客户沉淀，准私域价值 -->
+  <div style="display:flex;flex-direction:column;gap:1vh;padding-top:1.4vh;border-top:2px solid currentColor;border-color:rgba(127,127,127,.4)">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;opacity:.55">02 · 既有客群</div>
+    <div class="h-md">高净值信任资产，准私域金矿</div>
+    <div class="body-zh" style="font-size:max(13px,1.0vw);line-height:1.58;opacity:.84">
+      珠宝行业长期经营沉淀的真实客户关系——天然高净值、强信任、画像清晰。这群人尚未被系统导入酒店私域，是获客冷启动最精准的高转化人群。
+    </div>
+  </div>
+  <!-- 03 本地美食：水贝在地风味 -->
+  <div style="display:flex;flex-direction:column;gap:1vh;padding-top:1.4vh;border-top:2px solid currentColor;border-color:rgba(127,127,127,.4)">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;opacity:.55">03 · 本地美食</div>
+    <div class="h-md">珠宝城里的味觉密码</div>
+    <div class="body-zh" style="font-size:max(13px,1.0vw);line-height:1.58;opacity:.84">
+      潮汕牛肉火锅的极致鲜嫩、莆田卤面的浓醇汤底、客家盆菜的层层丰盛——罗湖水贝的街头巷尾藏着深圳最地道的人间烟火，是自带流量的在地内容富矿。
+    </div>
+  </div>
+  <!-- 04 民俗文化：活着的仪式感 -->
+  <div style="display:flex;flex-direction:column;gap:1vh;padding-top:1.4vh;border-top:2px solid currentColor;border-color:rgba(127,127,127,.4)">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;opacity:.55">04 · 民俗文化</div>
+    <div class="h-md">六百年水贝，活着的仪式</div>
+    <div class="body-zh" style="font-size:max(13px,1.0vw);line-height:1.58;opacity:.84">
+      伯公诞的全村盛宴、春节舞狮巡游、宗祠祭祖的袅袅香火——这些不是表演，是水贝人真实的日常。每一次民俗仪式，都是不可复制的原生内容IP。
+    </div>
+  </div>
+</div>
+
+  </div>
+  <div class="foot">
+    <div>核心机会点</div>
+    <div>Hotel Content Strategy</div>
+  </div>
+</section>
+
+
+<section class="slide light" style="padding:0">
+  <div class="frame" style="width:100vw;height:100vh;padding:0;margin:0">
+    <img src="images/p06-p08-integrated-visual.png" alt="双引擎 内容矩阵整页图" style="width:100%;height:100%;object-fit:cover;display:block">
+  </div>
+</section>
+
+
+<section class="slide light" style="padding:0">
+  <div class="frame" style="width:100vw;height:100vh;padding:0;margin:0">
+    <img src="images/circle.png" alt="增长闭环整页图" style="width:100%;height:100%;object-fit:cover;display:block">
+  </div>
+</section>
+
+
+<section class="slide light" style="padding:0">
+  <div class="frame" style="width:100vw;height:100vh;padding:0;margin:0">
+    <img src="images/timeline.png" alt="时间线整页图" style="width:100%;height:100%;object-fit:cover;display:block">
+  </div>
+</section>
+
+
+<section class="slide light">
+  <div class="chrome">
+    <div>Core Deliverables Breakdown</div>
+    <div>11 / 14</div>
+  </div>
+  <div class="frame" style="padding-top:4vh">
+    <div class="kicker">What You Get</div><h2 class="h-xl">合作机制与交付全景</h2>
+    <div class="callout" style="margin-top:1.2vh;max-width:88vw;padding:1.6vh 1.4vw">
+      <div class="q-big">风险共担，长期同行</div>
+      <p class="body-zh" style="margin-top:.8vh">采用“基础服务费 + 效果激励奖金”的合作模式，以结果为导向与您共担增长风险，以长期陪跑兑现持续价值。</p>
+    </div>
+
+<div class="grid-3" style="margin-top:3vh">
+  <!-- 模块一 -->
+  <div style="display:flex;flex-direction:column;gap:1.2vh;padding-top:1.6vh;border-top:2px solid currentColor;border-color:rgba(127,127,127,.4)">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;opacity:.55">模块一</div>
+    <div class="h-md">战略定位与内容模型</div>
+    <div class="body-zh" style="font-size:max(13px,1.02vw);line-height:1.6">
+      ① 《内容营销战略定位报告》— 含精准人群画像（年龄/收入/兴趣/痛点）、多平台对比与选择逻辑、竞品内容策略分析<br>
+      ② "酒店+珠宝"专属人设定位 — 10个故事标签，确立差异化内容人格<br>
+      ③ 《双内容生态战略蓝图》— 酒店号+珠宝号长期生态协同规划<br>
+      ④ 战略解读会 — 逐页对齐团队认知
+    </div>
+    <div style="margin-top:.6vh;padding:1vh 1vw;border-left:2px solid currentColor;background:rgba(var(--ink-rgb),.04);font-family:var(--sans-zh);font-size:max(12px,.95vw);line-height:1.5;opacity:.88">
+      <b>解决什么：</b>从"不知道发什么、对谁发"→ 每条内容都有清晰的战略坐标。团队告别盲目试错，内容方向不再靠猜。
+    </div>
+  </div>
+  <!-- 模块二 -->
+  <div style="display:flex;flex-direction:column;gap:1.2vh;padding-top:1.6vh;border-top:2px solid currentColor;border-color:rgba(127,127,127,.4)">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;opacity:.55">模块二</div>
+    <div class="h-md">智能体助手与私域基建</div>
+    <div class="body-zh" style="font-size:max(13px,1.02vw);line-height:1.6">
+      ① 6个月内容作战日历 — 每周主题、形式、发布时间滚动排定，可动态调整<br>
+      ② 智能体实时选题 — 每个选题从酒店自身特点出发，结合日历和即时热点，包含爆款逻辑、拍摄要点、文案框架<br>
+      ③ 内容生产SOP — 质量检查清单 + 内容创作工作流<br>
+      ④ 私域基建部署 — 客户标签体系、转化追踪看板搭建指导、策略持续更新
+    </div>
+    <div style="margin-top:.6vh;padding:1vh 1vw;border-left:2px solid currentColor;background:rgba(var(--ink-rgb),.04);font-family:var(--sans-zh);font-size:max(12px,.95vw);line-height:1.5;opacity:.88">
+      <b>解决什么：</b>从"知道方向但不会落地"→ 每周如何策划实施、如何追踪转化、如何复盘迭代，全部有章可循。团队按作战地图高效推进。
+    </div>
+  </div>
+  <!-- 模块三 -->
+  <div style="display:flex;flex-direction:column;gap:1.2vh;padding-top:1.6vh;border-top:2px solid currentColor;border-color:rgba(127,127,127,.4)">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;opacity:.55">模块三</div>
+    <div class="h-md">陪跑执行与月度优化</div>
+    <div class="body-zh" style="font-size:max(13px,1.02vw);line-height:1.6">
+      ① 每月1次数据复盘会 — 播放/互动/咨询/转化逐项拆解，定位优劣根因<br>
+      ② 月度优化建议报告 — 下月方向调整、爆款复制策略、风险规避方案<br>
+      ③ 24小时紧急响应通道 — 流量骤降、负面舆情，当日给出应对方案
+    </div>
+    <div style="margin-top:.6vh;padding:1vh 1vw;border-left:2px solid currentColor;background:rgba(var(--ink-rgb),.04);font-family:var(--sans-zh);font-size:max(12px,.95vw);line-height:1.5;opacity:.88">
+      <b>解决什么：</b>从"做了一段时间不知道对不对"→ 每月有数据、有复盘、有方向。陪你跑满6个月持续拿结果。
+    </div>
+  </div>
+</div>
+
+  </div>
+  <div class="foot">
+    <div>核心交付</div>
+    <div>Hotel Content Strategy</div>
+  </div>
+</section>
+
+
+<section class="slide light" style="padding:0">
+  <div class="frame" style="width:100vw;height:100vh;padding:0;margin:0">
+    <img src="images/agent.png" alt="智能体助手" style="width:100%;height:100%;object-fit:cover;display:block">
+  </div>
+</section>
+
+
+<section class="slide hero dark">
+  <div class="chrome">
+    <div>Call To Action</div>
+    <div>13 / 14</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker">Next Step</div><h1 class="h-hero" style="font-size:7vw">下一步行动</h1>
+    
+<div class="pipeline-section">
+  <div class="pipeline" data-cols="3">
+    <div class="step"><div class="step-nb">01</div><div class="step-title">内部对齐</div><div class="step-desc">在核心决策层统一内容获客战略认知</div></div>
+    <div class="step"><div class="step-nb">02</div><div class="step-title">确认意向</div><div class="step-desc">认可诊断与方向后进入正式商务沟通</div></div>
+    <div class="step"><div class="step-nb">03</div><div class="step-title">签约启动</div><div class="step-desc">按三阶段路线以月度为单位交付复盘</div></div>
+  </div>
+</div>
+<div class="rule"></div>
+<p class="lead">C 端内容营销先发窗口期有限 尽早启动 以建立壁垒</p>
+
+  </div>
+  <div class="foot">
+    <div>行动号召</div>
+    <div>Hotel Content Strategy</div>
+  </div>
+</section>
+
+
+<section class="slide light">
+  <div class="chrome">
+    <div>Contact</div>
+    <div>14 / 14</div>
+  </div>
+  <div class="frame center" style="padding-top:0">
+    <div class="h-hero" style="font-size:9vw;letter-spacing:.02em">感谢聆听</div>
+  </div>
+  <div class="foot">
+    <div>封底</div>
+    <div>Hotel Content Strategy</div>
+  </div>
+</section>
+
+
+</div>
+
+<div id="nav"></div>
+
+<script>
+(() => {
+  const passcode = 'poli123';
+  const storageKey = 'rosedale_mkt_pass_ok';
+  const form = document.getElementById('pass-form');
+  const input = document.getElementById('pass-input');
+  const error = document.getElementById('pass-error');
+  const unlock = () => {
+    document.body.classList.remove('locked');
+    sessionStorage.setItem(storageKey, '1');
+  };
+  if (sessionStorage.getItem(storageKey) === '1') unlock();
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    if (input.value === passcode) unlock();
+    else {
+      error.textContent = '口令不正确，请重试。';
+      input.select();
+    }
+  });
+})();
+
+/* =============== WebGL 双背景 ===============
+   深色页：Holographic Dispersion（全息色散 · 钛金暗流）—— 彩虹微扰、鼠标径向涟漪
+   浅色页：Spiral Vortex（旋转涡流 · 银色珍珠）—— domain-warp 流动、无中心
+   修改风格请参考 references/webgl-backgrounds.md
+*/
+const VS = `attribute vec2 position;void main(){gl_Position=vec4(position,0.0,1.0);}`;
+
+const FS_DARK = `precision highp float;
+uniform vec2 u_resolution;uniform float u_time;uniform vec2 u_mouse;
+vec3 palette(float t,vec3 a,vec3 b,vec3 c,vec3 d){return a+b*cos(6.28318*(c*t+d));}
+void main(){
+  vec2 uv=gl_FragCoord.xy/u_resolution.xy;
+  vec2 p=uv*2.0-1.0;p.x*=u_resolution.x/u_resolution.y;
+  vec2 m=u_mouse*2.0-1.0;m.x*=u_resolution.x/u_resolution.y;
+  float md=length(p-m);
+  float mr=sin(md*15.0-u_time*4.0)*exp(-md*3.0);p+=mr*0.08;
+  vec2 p0=p;
+  for(float i=1.0;i<4.0;i++){
+    p.x+=0.1/i*sin(i*3.0*p.y+u_time*0.4)+0.05;
+    p.y+=0.1/i*cos(i*2.0*p.x+u_time*0.3)-0.05;
+  }
+  float r=length(p);float ang=atan(p.y,p.x);
+  vec3 a=vec3(0.12,0.12,0.13);
+  vec3 b=vec3(0.03,0.04,0.05);
+  vec3 c=vec3(1.0,1.0,1.0);
+  vec3 d=vec3(0.1,0.2,0.4);
+  vec3 col=palette(r*1.5+p0.x*0.5+u_time*0.1,a,b,c,d);
+  float disp=sin(r*25.0-u_time*1.5+ang*2.0)*0.5+0.5;
+  col+=vec3(disp*0.015,disp*0.01,disp*0.02);
+  float hi=pow(sin(p.x*4.0+p.y*3.0+u_time)*0.5+0.5,8.0);
+  col+=hi*0.08;
+  vec3 base=vec3(0.05,0.05,0.06);
+  col=mix(base,col,0.85);
+  gl_FragColor=vec4(col,1.0);
+}`;
+
+const FS_LIGHT = `precision highp float;
+uniform vec2 u_resolution;uniform float u_time;uniform vec2 u_mouse;
+float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float noise(vec2 p){
+  vec2 i=floor(p),f=fract(p);
+  float a=hash(i),b=hash(i+vec2(1,0));
+  float c=hash(i+vec2(0,1)),d=hash(i+vec2(1,1));
+  vec2 u=f*f*(3.0-2.0*f);
+  return mix(a,b,u.x)+(c-a)*u.y*(1.0-u.x)+(d-b)*u.x*u.y;
+}
+float fbm(vec2 p){
+  float v=0.0,a=0.5;
+  mat2 m=mat2(0.80,0.60,-0.60,0.80);
+  for(int i=0;i<5;i++){v+=a*noise(p);p=m*p*2.02;a*=0.5;}
+  return v;
+}
+void main(){
+  vec2 uv=gl_FragCoord.xy/u_resolution.xy;
+  vec2 p=uv;p.x*=u_resolution.x/u_resolution.y;
+  vec2 m=u_mouse;m.x*=u_resolution.x/u_resolution.y;
+  vec2 md=p-m;float dl=length(md);
+  p+=normalize(md+vec2(0.0001))*exp(-dl*5.0)*0.03;
+  vec2 q=vec2(fbm(p*1.8+u_time*0.07),fbm(p*1.8+vec2(5.2,1.3)+u_time*0.06));
+  vec2 r=vec2(fbm(p*2.0+q*1.3+vec2(1.7,9.2)+u_time*0.05),
+              fbm(p*2.0+q*1.3+vec2(8.3,2.8)+u_time*0.04));
+  float f=fbm(p*2.2+r*1.5);
+  vec3 silverDark=vec3(0.86,0.85,0.84);
+  vec3 paper=vec3(0.955,0.945,0.925);
+  vec3 col=mix(silverDark,paper,f);
+  float ph=r.x*2.2+u_time*0.35;
+  col+=vec3(0.78,0.62,0.92)*sin(ph)*0.055;
+  col+=vec3(0.55,0.72,0.95)*sin(ph*0.8+2.0)*0.05;
+  float hl=smoothstep(0.48,0.92,f);
+  col+=hl*0.06;
+  gl_FragColor=vec4(col,1.0);
+}`;
+
+const mouse={x:0.5,y:0.5};
+addEventListener('mousemove',e=>{mouse.x=e.clientX/innerWidth;mouse.y=e.clientY/innerHeight});
+
+function bootGL(canvasId, fsSrc){
+  const canvas=document.getElementById(canvasId);
+  const gl=canvas.getContext('webgl',{alpha:false,antialias:true});
+  if(!gl) return ()=>false;
+  const mk=(t,s)=>{const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);return sh};
+  const prog=gl.createProgram();
+  gl.attachShader(prog,mk(gl.VERTEX_SHADER,VS));
+  gl.attachShader(prog,mk(gl.FRAGMENT_SHADER,fsSrc));
+  gl.linkProgram(prog);gl.useProgram(prog);
+  const buf=gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
+  const pos=gl.getAttribLocation(prog,'position');
+  gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);
+  const lRes=gl.getUniformLocation(prog,'u_resolution');
+  const lT=gl.getUniformLocation(prog,'u_time');
+  const lM=gl.getUniformLocation(prog,'u_mouse');
+  const resize=()=>{
+    const d=Math.min(window.devicePixelRatio||1,2);
+    canvas.width=innerWidth*d;canvas.height=innerHeight*d;
+    gl.viewport(0,0,canvas.width,canvas.height);
+  };
+  addEventListener('resize',resize);resize();
+  return (tSec)=>{
+    gl.uniform2f(lRes,canvas.width,canvas.height);
+    gl.uniform1f(lT,tSec);
+    gl.uniform2f(lM,mouse.x,1-mouse.y);
+    gl.drawArrays(gl.TRIANGLES,0,6);
+    return true;
+  };
+}
+const drawDark=bootGL('bg-dark',FS_DARK);
+const drawLight=bootGL('bg-light',FS_LIGHT);
+const t0=Date.now();
+(function loop(){
+  const t=(Date.now()-t0)/1000;
+  drawDark(t);drawLight(t);
+  requestAnimationFrame(loop);
+})();
+
+// =============== 导航（翻页 / 圆点 / 键盘 / 滚轮 / 触屏） ===============
+const deck=document.getElementById('deck');
+const slides=deck.querySelectorAll('.slide');
+const nav=document.getElementById('nav');
+let idx=0,total=slides.length,lock=false;
+
+// 关键：矫正 deck 宽度为 total * 100vw，否则翻页会错位
+deck.style.width=(total*100)+'vw';
+
+slides.forEach((s,i)=>{
+  const b=document.createElement('button');
+  b.className='dot';b.dataset.i=i;b.setAttribute('aria-label','Page '+(i+1));
+  b.onclick=()=>go(i);
+  nav.appendChild(b);
+});
+
+function go(n){
+  if(lock)return;
+  idx=Math.max(0,Math.min(total-1,n));
+  deck.style.transform=`translateX(${-idx*100}vw)`;
+  nav.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
+  /* 主题切换：优先读 data-theme，其次从 class（light/dark）推断 */
+  const el=slides[idx];
+  const th=el.dataset.theme || (el.classList.contains('light')?'light':(el.classList.contains('dark')?'dark':'dark'));
+  document.body.classList.toggle('light-bg',th==='light');
+  lock=true;setTimeout(()=>lock=false,700);
+}
+
+/* =============== ESC 索引视图 =============== */
+let overviewOn=false;
+const ov=document.createElement('div');
+ov.id='overview';
+ov.style.cssText='position:fixed;inset:0;z-index:100;background:rgba(var(--ink-rgb),.92);backdrop-filter:blur(12px);display:none;overflow-y:auto;padding:4vh 4vw';
+document.body.appendChild(ov);
+
+function buildOverview(){
+  ov.innerHTML='';
+  const grid=document.createElement('div');
+  grid.style.cssText='display:grid;grid-template-columns:repeat(4,1fr);gap:2vh 1.6vw;max-width:90vw;margin:0 auto';
+  slides.forEach((s,i)=>{
+    const card=document.createElement('div');
+    card.style.cssText='cursor:pointer;border-radius:6px;overflow:hidden;border:2px solid '+(i===idx?'rgba(var(--paper-rgb),.8)':'rgba(var(--paper-rgb),.15)')+';transition:border-color .2s';
+    card.onmouseenter=()=>card.style.borderColor='rgba(var(--paper-rgb),.6)';
+    card.onmouseleave=()=>card.style.borderColor=i===idx?'rgba(var(--paper-rgb),.8)':'rgba(var(--paper-rgb),.15)';
+    const wrap=document.createElement('div');
+    wrap.style.cssText='width:100%;aspect-ratio:16/9;overflow:hidden;position:relative;pointer-events:none;background:'+(s.classList.contains('light')?'var(--paper)':'var(--ink)');
+    const clone=s.cloneNode(true);
+    clone.style.cssText='width:100vw;height:100vh;transform:scale('+(1/4.5)+');transform-origin:top left;position:absolute;top:0;left:0;pointer-events:none';
+    wrap.appendChild(clone);
+    const label=document.createElement('div');
+    label.style.cssText='padding:6px 10px;font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--paper);opacity:.7';
+    label.textContent=(i+1)+' / '+total;
+    card.appendChild(wrap);
+    card.appendChild(label);
+    card.onclick=()=>{toggleOverview();go(i)};
+    grid.appendChild(card);
+  });
+  ov.appendChild(grid);
+}
+
+function toggleOverview(){
+  overviewOn=!overviewOn;
+  if(overviewOn){buildOverview();ov.style.display='block';}
+  else{ov.style.display='none';}
+}
+
+addEventListener('keydown',e=>{
+  if(e.key==='Escape'){e.preventDefault();toggleOverview();return;}
+  if(overviewOn)return;
+  if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '||e.key==='ArrowDown')go(idx+1);
+  if(e.key==='ArrowLeft'||e.key==='PageUp'||e.key==='ArrowUp')go(idx-1);
+  if(e.key==='Home')go(0);
+  if(e.key==='End')go(total-1);
+});
+
+let wheelTO=null,wheelAcc=0;
+addEventListener('wheel',e=>{
+  wheelAcc+=e.deltaY+e.deltaX;
+  if(Math.abs(wheelAcc)>50){go(idx+(wheelAcc>0?1:-1));wheelAcc=0;}
+  clearTimeout(wheelTO);wheelTO=setTimeout(()=>wheelAcc=0,150);
+},{passive:true});
+
+let tx=0,ty=0;
+addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
+addEventListener('touchend',e=>{
+  const dx=(e.changedTouches[0].clientX-tx);
+  const dy=(e.changedTouches[0].clientY-ty);
+  if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy))go(idx+(dx<0?1:-1));
+},{passive:true});
+
+go(0);
+</script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script>lucide.createIcons();</script>
+</body>
+</html>
