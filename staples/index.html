@@ -1,0 +1,1716 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>从能用 AI 到用好 AI 智能化办公实战</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@300;400;500;600&family=Noto+Serif+SC:wght@300;400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* ============ 主题色(默认:🖋 墨水经典) ============
+       切换主题:从 references/themes.md 复制对应的 :root 块
+       整体替换这几行(--ink / --ink-rgb / --paper / --paper-rgb)
+       其他地方散落的 rgba() 都走 var(--ink-rgb) / var(--paper-rgb),无需逐处改 */
+    --ink:#17384c;
+    --ink-rgb:23,56,76;
+    --paper:#f5f1ea;
+    --paper-rgb:245,241,234;
+    --paper-tint:#ebe4d9;
+    --ink-tint:#24495f;
+    --accent:#62aebe;
+    --accent-rgb:98,174,190;
+    --accent-soft:#d9edf1;
+    --accent-2:#8db7bf;
+    --warm:#deb88f;
+    --warm-rgb:222,184,143;
+    --warm-soft:#f3e4d3;
+    --card-light:rgba(255,255,255,.52);
+    --card-dark:rgba(23,56,76,.10);
+
+    /* ============ 字体(跨主题固定) ============ */
+    --mono:"IBM Plex Mono",ui-monospace,monospace;
+    --serif-en:"Playfair Display","Source Serif 4",Georgia,serif;
+    --serif-body-en:"Source Serif 4",Georgia,serif;
+    --serif-zh:"Noto Serif SC",source-han-serif-sc,serif;
+    --sans-zh:"Noto Sans SC",source-han-sans-sc,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);color:var(--paper);font-family:var(--sans-zh);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+
+  /* ============ WebGL 双背景 ============ */
+  canvas.bg{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;display:block;transition:opacity 1.2s ease}
+  canvas#bg-light{opacity:0}
+  canvas#bg-dark{opacity:1}
+  body.light-bg canvas#bg-light{opacity:1}
+  body.light-bg canvas#bg-dark{opacity:0}
+
+  /* ============ Deck 容器 + 翻页 ============ */
+  /* width: NSLIDES * 100vw，会在 JS 里动态矫正 */
+  #deck{position:fixed;inset:0;width:10000vw;height:100vh;display:flex;flex-wrap:nowrap;transition:transform .9s cubic-bezier(.77,0,.175,1);z-index:10;will-change:transform}
+  .slide{width:100vw;height:100vh;flex:0 0 100vw;position:relative;padding:6vh 6vw 10vh 6vw;display:flex;flex-direction:column;overflow:hidden}
+  .slide.light{color:var(--ink)}
+  .slide.dark{color:var(--paper)}
+
+  /* 默认页：遮罩较厚，保证文字可读 */
+  .slide::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;transition:background .7s ease}
+  .slide.light::before{background:rgba(var(--paper-rgb),.78);backdrop-filter:blur(3px)}
+  .slide.dark::before{background:rgba(var(--ink-rgb),.78);backdrop-filter:blur(3px)}
+  /* Hero 页：遮罩大幅降低，让 WebGL 背景明显透出 */
+  .slide.hero.light::before{background:rgba(var(--paper-rgb),.16);backdrop-filter:none}
+  .slide.hero.dark::before{background:rgba(var(--ink-rgb),.12);backdrop-filter:none}
+  /* Hero 页顶底微弱渐隐，保证 chrome/foot 区域可读 */
+  .slide.hero::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none}
+  .slide.hero.light::after{background:linear-gradient(180deg,rgba(var(--paper-rgb),.28) 0%,rgba(var(--paper-rgb),0) 14%,rgba(var(--paper-rgb),0) 86%,rgba(var(--paper-rgb),.28) 100%)}
+  .slide.hero.dark::after{background:linear-gradient(180deg,rgba(var(--ink-rgb),.32) 0%,rgba(var(--ink-rgb),0) 14%,rgba(var(--ink-rgb),0) 86%,rgba(var(--ink-rgb),.32) 100%)}
+
+  /* ============ Magazine chrome：顶部 meta + 底部 foot ============ */
+  .chrome{display:flex;justify-content:space-between;align-items:flex-start;font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;opacity:.7}
+  .chrome .left,.chrome .right{display:flex;gap:2.4em;align-items:center}
+  .chrome .sep{width:40px;height:1px;background:currentColor;opacity:.4}
+  .foot{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;opacity:.55}
+  .foot .title{font-family:var(--serif-zh);font-weight:400;letter-spacing:.05em;text-transform:none;opacity:.75;font-size:13px}
+
+  .tag{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.24em;text-transform:uppercase;padding:6px 14px;border:1px solid currentColor;opacity:.85}
+  .rule{width:100%;height:1px;background:currentColor;opacity:.25;margin:3vh 0}
+  .rule.v{width:1px;height:100%;margin:0}
+
+  /* ============ 字体规则 ============
+     · 衬线（Noto Serif SC / Playfair）：大标题、重点金句、数字
+     · 非衬线（Noto Sans SC）：正文描述、body、补充说明
+     · 等宽（IBM Plex Mono）：kicker、meta 小标签、foot 右侧
+  */
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.3em;text-transform:uppercase;opacity:.6;margin-bottom:2.6vh}
+  .display{font-family:var(--serif-en);font-weight:700;font-size:11vw;line-height:.92;letter-spacing:-.025em}
+  .display-zh{font-family:var(--serif-zh);font-weight:700;font-size:7.8vw;line-height:1.04;letter-spacing:-.005em}
+  .h1-zh{font-family:var(--serif-zh);font-weight:700;font-size:4.6vw;line-height:1.12;letter-spacing:-.005em}
+  .h2-zh{font-family:var(--serif-zh);font-weight:600;font-size:3.2vw;line-height:1.2;letter-spacing:0}
+  .h3-zh{font-family:var(--serif-zh);font-weight:500;font-size:1.9vw;line-height:1.35}
+  .body-zh{font-family:var(--sans-zh);font-weight:400;font-size:max(15px,1.22vw);line-height:1.75;opacity:.82;letter-spacing:.01em}
+  .body-serif{font-family:var(--serif-zh);font-weight:400;font-size:max(15px,1.3vw);line-height:1.65;opacity:.88}
+  .lead{font-family:var(--serif-zh);font-weight:400;font-size:1.9vw;line-height:1.4;opacity:.85}
+  .meta{font-family:var(--mono);font-size:max(11px,.88vw);letter-spacing:.16em;text-transform:uppercase;opacity:.6}
+  .big-num{font-family:var(--serif-en);font-weight:800;font-size:10vw;line-height:.85;letter-spacing:-.03em;font-feature-settings:"tnum"}
+  .mid-num{font-family:var(--serif-en);font-weight:700;font-size:5.5vw;line-height:.88;letter-spacing:-.02em;font-feature-settings:"tnum"}
+  .ghost{font-family:var(--serif-en);font-weight:900;font-size:34vw;line-height:.8;opacity:.06;letter-spacing:-.04em;position:absolute;font-feature-settings:"tnum"}
+  em{font-style:italic;font-family:var(--serif-en)}
+  .en{font-family:var(--serif-en);font-style:italic;font-weight:500}
+
+  /* ============ 布局工具 ============ */
+  .col{display:flex;flex-direction:column;gap:2.4vh}
+  .row{display:flex;align-items:center;gap:3vw}
+  .grid-6{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:4vw 6vw;flex:1;align-content:center;padding:2vh 0}
+  .grid-9{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:3vh 4vw;flex:1;align-content:center}
+  .grid-4{display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);gap:4vh 6vw;flex:1;align-content:center}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:4vw;flex:1;align-content:center}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:4vw;flex:1;align-items:center}
+  .split-55{display:grid;grid-template-columns:55fr 45fr;gap:5vw;flex:1;align-items:stretch}
+  .fill{flex:1}
+  .center{align-items:center;justify-content:center;text-align:center}
+  .bottom-left{position:absolute;left:6vw;bottom:9vh;max-width:50vw}
+  .bottom-right{position:absolute;right:6vw;bottom:9vh;max-width:50vw;text-align:right}
+  .top-right{position:absolute;right:6vw;top:6vh;text-align:right}
+
+  /* ============ Stat（数字矩阵） ============ */
+  .stat{display:flex;flex-direction:column;gap:1vh;align-items:flex-start}
+  .stat .n{font-family:var(--serif-en);font-weight:800;font-size:8vw;line-height:.88;letter-spacing:-.03em;font-feature-settings:"tnum"}
+  .stat .l{font-family:var(--sans-zh);font-size:max(13px,1.05vw);opacity:.7;margin-top:1vh;font-weight:400;line-height:1.5}
+  .stat .m{font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;opacity:.5;margin-bottom:.2vh}
+
+  /* ============ Callout（引用框） ============ */
+  .callout{padding:3vh 2.4vw;border-left:3px solid currentColor;position:relative;font-family:var(--serif-zh);font-size:max(15px,1.2vw);line-height:1.55;opacity:.92}
+  .slide.light .callout{background:rgba(var(--ink-rgb),.05)}
+  .slide.dark .callout{background:rgba(var(--paper-rgb),.06)}
+  .callout .cite{display:block;margin-top:1.6vh;font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.6}
+  .callout .q-big{font-family:var(--serif-zh);font-weight:600;font-size:max(17px,1.6vw);line-height:1.42}
+
+  /* ============ Platform（平台卡） ============ */
+  .plat{display:flex;flex-direction:column;justify-content:flex-end;padding:2vh 0;border-top:1px solid currentColor;border-color:rgba(127,127,127,.35)}
+  .plat .name{font-family:var(--serif-zh);font-weight:700;font-size:1.8vw;margin-bottom:.6vh}
+  .plat .nb{font-family:var(--serif-en);font-weight:700;font-size:3.2vw;letter-spacing:-.02em;line-height:1;font-feature-settings:"tnum"}
+  .plat .sub{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;opacity:.55;margin-top:.6vh}
+  .plat .fill{font-family:var(--sans-zh);font-weight:300;font-size:2.4vw;opacity:.28;letter-spacing:-.01em;line-height:1}
+
+  /* ============ Rowline（表格行） ============ */
+  .rowline{display:grid;grid-template-columns:1fr 2fr 1fr;gap:2vw;padding:2.2vh 0;border-top:1px solid currentColor;align-items:center;border-color:rgba(127,127,127,.25)}
+  .rowline:last-child{border-bottom:1px solid currentColor;border-color:rgba(127,127,127,.25)}
+  .rowline .k{font-family:var(--serif-zh);font-weight:700;font-size:1.7vw}
+  .rowline .v{font-family:var(--sans-zh);font-weight:400;font-size:max(14px,1.2vw);opacity:.85;line-height:1.55}
+  .rowline .m{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.6;justify-self:end}
+
+  /* ============ Pillar（支柱卡片） ============ */
+  .pillar{display:flex;flex-direction:column;gap:1.8vh}
+  .pillar .ic{font-family:var(--serif-en);font-style:italic;font-size:2.6vw;opacity:.45;font-weight:400}
+  .pillar .ic svg{width:2.8vw;height:2.8vw;stroke-width:1.2;opacity:.7}
+  .pillar .t{font-family:var(--serif-zh);font-weight:700;font-size:2.4vw;line-height:1.1}
+  .pillar .d{font-family:var(--sans-zh);font-weight:400;font-size:max(14px,1.1vw);opacity:.76;line-height:1.6}
+
+  /* ============ Signature / Highlight ============ */
+  .sign{font-family:var(--serif-en);font-style:italic;font-weight:500;font-size:2vw;opacity:.7}
+  .hi{position:relative;display:inline}
+  .slide.dark .hi::after{content:"";position:absolute;left:-.1em;right:-.1em;bottom:-.05em;height:.28em;background:rgba(var(--paper-rgb),.15);z-index:-1}
+  .slide.light .hi::after{content:"";position:absolute;left:-.1em;right:-.1em;bottom:-.05em;height:.28em;background:rgba(var(--ink-rgb),.08);z-index:-1}
+
+  /* ============ Icons（Lucide via CDN） ============ */
+  .ico{width:1em;height:1em;display:inline-block;vertical-align:-.12em;stroke:currentColor;fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+  .ico-lg,.ico-md,.ico-sm{fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
+  .ico-lg{width:2.6vw;height:2.6vw;stroke-width:1.2;display:inline-block}
+  .ico-md{width:1.8vw;height:1.8vw;stroke-width:1.3;display:inline-block;vertical-align:-.4em}
+  .ico-sm{width:1.1vw;height:1.1vw;stroke-width:1.4;display:inline-block;vertical-align:-.15em;opacity:.7}
+
+  /* ============ 图片占位（虚线框，提示设计师位置） ============ */
+  .img-slot{border:1.5px dashed rgba(127,127,127,.4);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1vh;padding:2vh 2vw;font-family:var(--mono);font-size:10px;letter-spacing:.28em;text-transform:uppercase;opacity:.55;position:relative;aspect-ratio:16/9;width:100%;max-height:56vh;margin-inline:auto;box-sizing:border-box}
+  .img-slot::before{content:"";position:absolute;inset:8px;border:1px solid currentColor;opacity:.2}
+  .img-slot .plus{font-size:2vw;font-weight:300;opacity:.5;letter-spacing:0}
+  .img-slot .label{position:relative;z-index:2;text-align:center}
+  .img-slot.r-4x3{aspect-ratio:4/3}
+  .img-slot.r-3x2{aspect-ratio:3/2}
+  .img-slot.r-1x1{aspect-ratio:1/1}
+
+  /* ============ 图片实填框（关键：固定高度 + 只裁底部） ============
+     重要约束：高度用内联 height:Nvh 精确控制，不要用 aspect-ratio（会撑破布局）
+     object-position:top center 保证严禁裁剪顶部和左右，只裁剪底部
+  */
+  .frame-img{overflow:hidden;position:relative;background:rgba(0,0,0,.04);box-sizing:border-box;width:100%;border-radius:4px}
+  .slide.dark .frame-img{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.12)}
+  .frame-img > img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
+  .frame-cap{display:flex;justify-content:space-between;align-items:baseline;gap:1vw;margin-top:.8vh;font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;opacity:.72}
+  .frame-cap .pf{font-family:var(--serif-zh);font-weight:600;font-size:max(13px,1vw);letter-spacing:.04em;text-transform:none;opacity:.94}
+  .frame-cap .nb{font-family:var(--serif-en);font-style:italic;font-size:max(15px,1.2vw);letter-spacing:.02em;text-transform:none;opacity:.88}
+  .frame-cap .idx{font-family:var(--mono);opacity:.5}
+  figure.tile{display:flex;flex-direction:column;margin:0;min-width:0}
+  figure.tile > .frame-img{flex:0 0 auto}
+
+  /* ============ 导航 ============ */
+  #nav{position:fixed;left:50%;bottom:2.6vh;transform:translateX(-50%);z-index:30;display:flex;gap:10px;padding:8px 14px;border-radius:999px;background:rgba(0,0,0,.18);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  #nav .dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.3);cursor:pointer;transition:all .3s ease;border:0;padding:0}
+  #nav .dot:hover{background:rgba(255,255,255,.5);transform:scale(1.15)}
+  #nav .dot.active{background:rgba(255,255,255,.95);width:22px;border-radius:999px}
+  body.light-bg #nav{background:rgba(255,255,255,.25)}
+  body.light-bg #nav .dot{background:rgba(var(--ink-rgb),.25)}
+  body.light-bg #nav .dot.active{background:rgba(var(--ink-rgb),.9)}
+  #hint{display:none}
+
+  /* ============================================================
+     ============ LAYOUTS API · 面向 agent 的类（v2）============
+     所有 layouts.md 中的骨架都基于下面这套命名。
+     如果你在 layouts.md 里看到某个类，它必须在下面有定义。
+     ============================================================ */
+
+  /* ---------- .frame：每页主内容容器 ---------- */
+  .frame{flex:1;display:flex;flex-direction:column;min-height:0}
+  /* 当 .frame 同时加了 grid 类时，grid 的 display:grid 覆盖 flex */
+  .frame.grid-2-7-5,
+  .frame.grid-2-6-6,
+  .frame.grid-2-8-4,
+  .frame.grid-3-3,
+  .frame.grid-6{display:grid}
+
+  /* ---------- 标题层级（API 名称，衬线为主） ---------- */
+  .h-hero{
+    font-family:var(--serif-zh);
+    font-weight:900;
+    font-size:10vw;
+    line-height:.96;
+    letter-spacing:-.02em;
+  }
+  .h-xl{
+    font-family:var(--serif-zh);
+    font-weight:700;
+    font-size:6.2vw;
+    line-height:1.08;
+    letter-spacing:-.01em;
+  }
+  .h-sub{
+    font-family:var(--serif-zh);
+    font-weight:500;
+    font-size:3.1vw;
+    line-height:1.25;
+    letter-spacing:0;
+    opacity:.7;
+  }
+  .h-md{
+    font-family:var(--serif-zh);
+    font-weight:600;
+    font-size:2.3vw;
+    line-height:1.3;
+  }
+  /* 英文标题专用（Playfair 衬线） */
+  .h-hero-en,.h-xl-en{font-family:var(--serif-en);letter-spacing:-.025em}
+
+  /* ---------- lead 引语 ---------- */
+  .lead{
+    font-family:var(--serif-zh);
+    font-weight:400;
+    font-size:1.75vw;
+    line-height:1.5;
+    opacity:.86;
+  }
+
+  /* ---------- meta-row 底部元数据 ---------- */
+  .meta-row{
+    display:flex;
+    gap:1.2em;
+    align-items:baseline;
+    flex-wrap:wrap;
+    font-family:var(--mono);
+    font-size:max(12px,.92vw);
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    opacity:.6;
+  }
+
+  /* ---------- stat-card（数据大字报用） ---------- */
+  .stat-card{
+    display:flex;
+    flex-direction:column;
+    gap:.8vh;
+    align-items:flex-start;
+    padding-top:1.6vh;
+    border-top:1px solid currentColor;
+    border-color:rgba(127,127,127,.3);
+  }
+  .stat-card .stat-label{
+    font-family:var(--mono);
+    font-size:max(10px,.78vw);
+    letter-spacing:.24em;
+    text-transform:uppercase;
+    opacity:.55;
+  }
+  .stat-card .stat-nb{
+    font-family:var(--serif-en);
+    font-weight:800;
+    font-size:5.8vw;
+    line-height:.9;
+    letter-spacing:-.03em;
+    font-feature-settings:"tnum";
+    margin-top:.4vh;
+  }
+  .stat-card .stat-nb .stat-unit{
+    font-family:var(--serif-zh);
+    font-weight:500;
+    font-size:.38em;
+    letter-spacing:0;
+    opacity:.72;
+    margin-left:.14em;
+  }
+  .stat-card .stat-note{
+    font-family:var(--sans-zh);
+    font-weight:400;
+    font-size:max(13px,1.05vw);
+    line-height:1.5;
+    opacity:.72;
+    margin-top:.6vh;
+  }
+  /* 当 stat-card 用于 grid-4（2x2），数字可以更大 */
+  .grid-4 .stat-card .stat-nb{font-size:7.5vw}
+  /* 当只有 3 个，字也可以稍大 */
+  .grid-3 .stat-card .stat-nb{font-size:6.8vw}
+
+  /* ---------- pipeline（流水线） ---------- */
+  .pipeline-section{
+    margin-top:4.4vh;
+    padding-top:2.8vh;
+    border-top:1px dashed rgba(127,127,127,.32);
+  }
+  .pipeline-section:first-of-type{
+    border-top:0;
+    padding-top:0;
+    margin-top:3vh;
+  }
+  .pipeline-label{
+    font-family:var(--mono);
+    font-size:max(11px,.85vw);
+    letter-spacing:.24em;
+    text-transform:uppercase;
+    opacity:.62;
+    margin-bottom:2.2vh;
+  }
+  .pipeline{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:1.2vw;
+  }
+  .pipeline[data-cols="3"]{grid-template-columns:repeat(3,1fr)}
+  .pipeline[data-cols="4"]{grid-template-columns:repeat(4,1fr)}
+  .pipeline[data-cols="6"]{grid-template-columns:repeat(6,1fr)}
+  .step{
+    display:flex;
+    flex-direction:column;
+    gap:.8vh;
+    padding-top:1.4vh;
+    border-top:1px solid currentColor;
+    border-color:rgba(127,127,127,.35);
+  }
+  .step-nb{
+    font-family:var(--serif-en);
+    font-style:italic;
+    font-weight:500;
+    font-size:1.15vw;
+    opacity:.45;
+  }
+  .step-title{
+    font-family:var(--sans-zh);
+    font-weight:700;
+    font-size:1.55vw;
+    letter-spacing:.01em;
+    line-height:1.2;
+  }
+  .step-desc{
+    font-family:var(--sans-zh);
+    font-weight:400;
+    font-size:max(12px,.95vw);
+    line-height:1.45;
+    opacity:.72;
+  }
+
+  .image-slide{padding:0}
+  .image-slide::before,.image-slide::after{display:none}
+  .image-slide img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    object-position:center;
+    display:block;
+  }
+  .image-slide .chrome,
+  .image-slide .foot{
+    position:absolute;
+    left:5vw;
+    right:5vw;
+    z-index:4;
+    color:var(--ink);
+    text-shadow:0 1px 0 rgba(255,255,255,.65);
+  }
+  .image-slide.dark .chrome,
+  .image-slide.dark .foot{
+    color:var(--paper);
+    text-shadow:0 1px 8px rgba(0,0,0,.28);
+  }
+  .image-slide .chrome{top:4.6vh}
+  .image-slide .foot{bottom:3.4vh}
+
+  .eyebrow{
+    display:inline-flex;
+    align-items:center;
+    gap:.8em;
+    padding:.7vh 1.1vw;
+    border-radius:999px;
+    background:rgba(var(--accent-rgb),.12);
+    color:var(--ink);
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+  }
+  .slide.dark .eyebrow{
+    background:rgba(var(--paper-rgb),.10);
+    color:var(--paper);
+  }
+
+  .corner-motif{
+    position:absolute;
+    right:4.8vw;
+    top:10.5vh;
+    width:15vw;
+    height:16vh;
+    pointer-events:none;
+    opacity:.92;
+  }
+  .corner-motif .halo{
+    position:absolute;
+    border-radius:50%;
+    filter:blur(.2px);
+  }
+  .corner-motif .halo.cool{
+    width:11vw;height:11vw;right:-2vw;top:-3vh;
+    background:radial-gradient(circle at 35% 35%, rgba(var(--accent-rgb),.18), rgba(var(--accent-rgb),0) 72%);
+  }
+  .corner-motif .halo.warm{
+    width:7vw;height:7vw;right:1vw;top:4vh;
+    background:radial-gradient(circle at 45% 45%, rgba(var(--warm-rgb),.22), rgba(var(--warm-rgb),0) 72%);
+  }
+  .corner-motif .desk{
+    position:absolute;
+    right:.4vw;
+    bottom:.5vh;
+    width:12vw;
+    height:6.2vh;
+    border-radius:999px;
+    background:linear-gradient(180deg, rgba(255,255,255,.42), rgba(255,255,255,.18));
+    border:1px solid rgba(var(--accent-rgb),.18);
+  }
+  .slide.dark .corner-motif .desk{
+    background:linear-gradient(180deg, rgba(var(--paper-rgb),.10), rgba(var(--paper-rgb),.05));
+    border-color:rgba(var(--paper-rgb),.18);
+  }
+  .corner-motif .mug,
+  .corner-motif .note,
+  .corner-motif .stem{
+    position:absolute;
+    border-radius:999px;
+    background:rgba(255,255,255,.8);
+    border:1px solid rgba(var(--accent-rgb),.22);
+  }
+  .corner-motif .mug{
+    width:2.2vw;height:2.2vw;right:7.3vw;bottom:2.6vh;
+    background:linear-gradient(180deg, rgba(var(--accent-rgb),.18), rgba(255,255,255,.95));
+  }
+  .corner-motif .note{
+    width:4.6vw;height:1.15vh;right:2vw;bottom:1.9vh;
+    border-radius:14px;
+    background:linear-gradient(180deg, rgba(var(--warm-rgb),.16), rgba(255,255,255,.88));
+    transform:rotate(-7deg);
+  }
+  .corner-motif .stem{
+    width:2.7vw;height:5.2vh;right:0;bottom:2.2vh;
+    background:linear-gradient(180deg, rgba(var(--paper-rgb),.92), rgba(var(--paper-rgb),.70));
+  }
+  .corner-motif .leaf{
+    position:absolute;
+    width:1.1vw;height:2vh;
+    background:rgba(var(--accent-rgb),.28);
+    border-radius:100% 0 100% 0;
+    transform-origin:bottom center;
+  }
+  .corner-motif .leaf.a{right:1vw;bottom:7vh;transform:rotate(-18deg)}
+  .corner-motif .leaf.b{right:2.1vw;bottom:7.8vh;transform:rotate(22deg)}
+  .corner-motif .leaf.c{right:.2vw;bottom:8.1vh;transform:rotate(38deg)}
+
+  .accent-line{
+    width:4.6vw;
+    height:4px;
+    border-radius:999px;
+    background:linear-gradient(90deg, rgba(var(--accent-rgb),.9), rgba(var(--warm-rgb),.85));
+  }
+
+  .soft-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:2vh 1.6vw;
+  }
+  .soft-card{
+    min-height:18vh;
+    padding:2.2vh 1.4vw 1.8vh;
+    border-radius:22px;
+    background:var(--card-light);
+    border:1px solid rgba(var(--accent-rgb),.18);
+    box-shadow:0 10px 30px rgba(var(--ink-rgb),.05);
+  }
+  .slide.dark .soft-card{
+    background:rgba(var(--paper-rgb),.08);
+    border-color:rgba(var(--paper-rgb),.12);
+    box-shadow:none;
+  }
+  .soft-card .cap{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    opacity:.55;
+  }
+  .soft-card .ttl{
+    margin-top:1.1vh;
+    font-family:var(--serif-zh);
+    font-size:1.65vw;
+    line-height:1.28;
+    font-weight:700;
+  }
+  .soft-card .desc{
+    margin-top:1.1vh;
+    font-family:var(--sans-zh);
+    font-size:max(13px,.96vw);
+    line-height:1.62;
+    opacity:.78;
+  }
+
+  .mini-list{
+    display:flex;
+    flex-direction:column;
+    gap:1vh;
+    margin-top:1.2vh;
+  }
+  .mini-list div{
+    display:flex;
+    gap:.8em;
+    align-items:flex-start;
+    font-family:var(--sans-zh);
+    font-size:max(13px,.96vw);
+    line-height:1.55;
+    opacity:.82;
+  }
+
+  .story-panel{
+    padding:2.8vh 1.8vw 2.2vh;
+    border-radius:28px;
+    background:linear-gradient(180deg, rgba(var(--accent-rgb),.08), rgba(255,255,255,.62));
+    border:1px solid rgba(var(--accent-rgb),.18);
+    box-shadow:0 14px 40px rgba(var(--ink-rgb),.06);
+  }
+  .story-panel.warm{
+    background:linear-gradient(180deg, rgba(var(--warm-rgb),.12), rgba(255,255,255,.72));
+    border-color:rgba(var(--warm-rgb),.28);
+  }
+  .slide.dark .story-panel{
+    background:linear-gradient(180deg, rgba(var(--paper-rgb),.09), rgba(var(--paper-rgb),.05));
+    border-color:rgba(var(--paper-rgb),.14);
+    box-shadow:none;
+  }
+
+  .phase-band{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:1.4vw;
+    margin-top:3vh;
+  }
+  .phase-card{
+    padding:2.4vh 1.5vw 2vh;
+    border-radius:24px;
+    background:rgba(255,255,255,.54);
+    border:1px solid rgba(var(--accent-rgb),.16);
+  }
+  .phase-card .phase{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:.24em;
+    text-transform:uppercase;
+    opacity:.55;
+  }
+  .phase-card .name{
+    margin-top:1vh;
+    font-family:var(--serif-zh);
+    font-size:1.7vw;
+    font-weight:700;
+  }
+  .phase-card .body{
+    margin-top:1.1vh;
+    font-family:var(--sans-zh);
+    font-size:max(13px,.96vw);
+    line-height:1.6;
+    opacity:.78;
+  }
+
+  .role-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:1.4vh 1vw;
+    margin-top:3vh;
+  }
+  .role-card{
+    min-height:17vh;
+    padding:1.8vh 1.1vw;
+    border-radius:20px;
+    background:rgba(255,255,255,.50);
+    border:1px solid rgba(var(--accent-rgb),.16);
+  }
+  .slide.dark .role-card{
+    background:rgba(var(--paper-rgb),.08);
+    border-color:rgba(var(--paper-rgb),.13);
+  }
+  .role-card .idx{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    opacity:.48;
+  }
+  .role-card .rt{
+    margin-top:.8vh;
+    font-family:var(--serif-zh);
+    font-size:1.35vw;
+    line-height:1.25;
+    font-weight:700;
+  }
+  .role-card .rd{
+    margin-top:.8vh;
+    font-family:var(--sans-zh);
+    font-size:max(12px,.84vw);
+    line-height:1.55;
+    opacity:.76;
+  }
+
+  .tool-columns{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:1.5vh 1.2vw;
+    margin-top:2.8vh;
+  }
+  .tool-card{
+    min-height:17vh;
+    padding:1.8vh 1.2vw 1.5vh;
+    border-radius:20px;
+    background:rgba(255,255,255,.5);
+    border:1px solid rgba(var(--accent-rgb),.16);
+  }
+  .tool-card .cat{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    opacity:.55;
+  }
+  .tool-card .head{
+    margin-top:.8vh;
+    font-family:var(--serif-zh);
+    font-size:1.32vw;
+    font-weight:700;
+    line-height:1.25;
+  }
+  .tool-card .stack{
+    margin-top:.8vh;
+    font-family:var(--sans-zh);
+    font-size:max(12px,.88vw);
+    line-height:1.62;
+    opacity:.8;
+  }
+  .tool-card .use{
+    margin-top:1vh;
+    padding-top:.9vh;
+    border-top:1px solid rgba(var(--accent-rgb),.16);
+    font-family:var(--sans-zh);
+    font-size:max(12px,.82vw);
+    line-height:1.5;
+    opacity:.68;
+  }
+
+  /* ---------- 网格（layouts.md 所用） ---------- */
+  /* 这些类独立挂到任何容器上都能生效，不依赖 .frame 复合选择器 */
+  .grid-2-7-5{display:grid;grid-template-columns:7fr 5fr;gap:3vw 4vh;align-items:start}
+  .grid-2-6-6{display:grid;grid-template-columns:1fr 1fr;gap:3vw 4vh;align-items:start}
+  .grid-2-8-4{display:grid;grid-template-columns:8fr 4fr;gap:3vw 4vh;align-items:start}
+  .grid-3-3{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    grid-auto-rows:minmax(0,1fr);
+    gap:2.4vh 2vw;
+  }
+  /* grid-6 已在旧样式里定义为 3x2，这里仅补 align */
+
+  /* ---------- 图片 frame-img（layouts.md 主命名） ---------- */
+  /* 在旧样式里已定义，这里补 img-cap 命名别名与增强 */
+  figure.frame-img{margin:0;display:flex;flex-direction:column;min-width:0}
+  .img-cap{
+    display:block;
+    margin-top:.8vh;
+    font-family:var(--mono);
+    font-size:max(10px,.8vw);
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    opacity:.6;
+  }
+  /* callout src 命名别名 */
+  .callout-src{
+    display:block;
+    margin-top:1.6vh;
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    opacity:.6;
+  }
+
+  /* ---------- chrome & foot 补位（layouts.md 简单写法） ---------- */
+  .chrome{font-family:var(--mono);font-size:max(11px,.78vw);letter-spacing:.2em;text-transform:uppercase;opacity:.62}
+  .foot{font-family:var(--mono);font-size:max(11px,.78vw);letter-spacing:.18em;text-transform:uppercase;opacity:.5}
+
+  /* ---------- 响应式降级 ---------- */
+  @media (max-width:900px){
+    .display{font-size:16vw}
+    .display-zh{font-size:12vw}
+    .h1-zh{font-size:7vw}
+    .h-hero{font-size:14vw}
+    .h-xl{font-size:9vw}
+    .pipeline{grid-template-columns:repeat(2,1fr)}
+    .grid-2-7-5,.grid-2-6-6,.grid-2-8-4{grid-template-columns:1fr}
+  }
+
+  body.auth-locked #deck,
+  body.auth-locked canvas.bg,
+  body.auth-locked #nav,
+  body.auth-locked #hint{display:none}
+  #auth-gate{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;background:var(--ink);color:var(--paper);font-family:var(--sans-zh);padding:24px}
+  body.auth-locked #auth-gate{display:flex}
+  .auth-card{width:min(420px,100%);padding:34px 30px;border:1px solid rgba(var(--paper-rgb),.28);background:rgba(var(--paper-rgb),.08);box-shadow:0 28px 80px rgba(0,0,0,.26);border-radius:18px}
+  .auth-card h1{font-family:var(--serif-zh);font-size:28px;line-height:1.25;margin-bottom:12px;font-weight:700}
+  .auth-card p{font-size:14px;line-height:1.7;opacity:.72;margin-bottom:22px}
+  .auth-card input{width:100%;height:46px;border:1px solid rgba(var(--paper-rgb),.28);border-radius:10px;background:rgba(var(--paper-rgb),.1);color:var(--paper);font-size:18px;padding:0 14px;outline:none}
+  .auth-card input:focus{border-color:rgba(var(--paper-rgb),.72)}
+  .auth-card button{width:100%;height:46px;margin-top:14px;border:0;border-radius:10px;background:var(--paper);color:var(--ink);font-weight:700;font-size:15px;cursor:pointer}
+  .auth-error{min-height:22px;margin-top:12px;font-size:13px;color:#ffd2c4}
+</style>
+</head>
+<body class="auth-locked">
+
+<div id="auth-gate" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+  <form class="auth-card" id="auth-form">
+    <h1 id="auth-title">访问口令</h1>
+    <p>请输入口令查看《从能用 AI 到用好 AI 智能化办公实战》slides。</p>
+    <input id="auth-password" type="password" autocomplete="current-password" autofocus>
+    <button type="submit">进入</button>
+    <div class="auth-error" id="auth-error" aria-live="polite"></div>
+  </form>
+</div>
+
+<canvas id="bg-dark" class="bg"></canvas>
+<canvas id="bg-light" class="bg"></canvas>
+<div id="hint">← → 翻页 · ESC 索引</div>
+
+<div id="deck">
+
+<!-- ============================================================
+     SLIDES 插入区 · 在此处填充所有 <section class="slide ..."> 页面
+     每页模板参考 references/page-patterns.md
+     页面组件参考 references/components.md
+     ============================================================ -->
+
+<!-- SLIDES_HERE -->
+
+<section class="slide light hero image-slide" data-theme="light">
+  <img src="images/01-cover.png" alt="从能用 AI 到用好 AI 封面页">
+  <div class="chrome">
+    <div>Act I · Opening</div>
+    <div>01 / 20</div>
+  </div>
+  <div class="foot">
+    <div class="title">从能用 AI 到用好 AI</div>
+    <div>AI-Enabled Work</div>
+  </div>
+</section>
+
+<section class="slide light hero image-slide" data-theme="light">
+  <img src="images/bio.png" alt="讲师介绍">
+  <div class="chrome">
+    <div>Act I · Opening</div>
+    <div>02 / 20</div>
+  </div>
+  <div class="foot">
+    <div class="title">讲师介绍</div>
+    <div>About the Speaker</div>
+  </div>
+</section>
+
+<section class="slide light" data-theme="light">
+  <div class="corner-motif">
+    <div class="halo cool"></div><div class="halo warm"></div><div class="desk"></div>
+    <div class="mug"></div><div class="note"></div><div class="stem"></div>
+    <div class="leaf a"></div><div class="leaf b"></div><div class="leaf c"></div>
+  </div>
+  <div class="chrome">
+    <div>Act I · Readiness</div>
+    <div>03 / 20</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="eyebrow">Survey Snapshot</div>
+    <div class="accent-line" style="margin-top:2.4vh"></div>
+    <h2 class="h-xl" style="margin-top:2vh;font-size:5.5vw">AI 已经进入日常使用<br>整体仍停留在基础应用阶段</h2>
+    <p class="lead" style="max-width:82vw;margin-top:2vh">
+      从问卷看，大家已经开始高频使用 AI，在使用深度、方法、和场景方面还有很多拓展空间
+    </p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2vh 2vw;margin-top:4vh">
+      <div class="rowline" style="grid-template-columns:1.2fr .9fr 2.4fr">
+        <div class="k">使用频率</div>
+        <div class="m">High Frequency</div>
+        <div class="v">多数人已高频使用 AI，已经进入日常工作和生活场景</div>
+      </div>
+      <div class="rowline" style="grid-template-columns:1.2fr .9fr 2.4fr">
+        <div class="k">主要用途</div>
+        <div class="m">Info Work</div>
+        <div class="v">应用主要集中在查信息、写作、 翻译和整理等内容处理类工作</div>
+      </div>
+      <div class="rowline" style="grid-template-columns:1.2fr .9fr 2.4fr">
+        <div class="k">工具使用</div>
+        <div class="m">Tool Choice</div>
+        <div class="v">以 ChatGPT 为主，同时接触多种国产工具，但整体选择分散，未体现出关于场景适配的明确倾向</div>
+      </div>
+      <div class="rowline" style="grid-template-columns:1.2fr .9fr 2.4fr">
+        <div class="k">熟悉程度</div>
+        <div class="m">Prompting</div>
+        <div class="v">多数仍停留在常规一问一答的对话形式，结构化提示词的使用还不普遍，也没有使用智能体进行实际任务</div>
+      </div>
+      <div class="rowline" style="grid-template-columns:1.2fr .9fr 2.4fr">
+        <div class="k">希望AI承担</div>
+        <div class="m">Delegation</div>
+        <div class="v">更愿意交给 AI 处理重复性、结构化、和低创造性的事务性任务</div>
+      </div>
+      <div class="rowline" style="grid-template-columns:1.2fr .9fr 2.4fr">
+        <div class="k">延伸场景</div>
+        <div class="m">Beyond Work</div>
+        <div class="v">使用需求已从工作延伸到个人成长 生活决策 育儿 旅行等场景</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div class="title">讲座问卷结果一览</div>
+    <div>From Use to Value</div>
+  </div>
+</section>
+
+<section class="slide light" data-theme="light">
+  <div class="corner-motif">
+    <div class="halo cool"></div><div class="halo warm"></div><div class="desk"></div>
+    <div class="mug"></div><div class="note"></div><div class="stem"></div>
+    <div class="leaf a"></div><div class="leaf b"></div><div class="leaf c"></div>
+  </div>
+  <div class="chrome">
+    <div>Act I · Global Adoption</div>
+    <div>04 / 20</div>
+  </div>
+  <div class="frame" style="position:relative;min-height:80vh;padding-top:2vh">
+    <div style="position:relative;z-index:2;padding-top:6vh;max-width:50vw">
+      <div class="eyebrow">Global Adoption</div>
+      <div class="accent-line" style="margin-top:2vh;width:40vw"></div>
+      <h2 class="h-xl" style="margin-top:2vh;font-size:4.2vw;line-height:1.08;max-width:50vw;white-space:nowrap">AI在全球的普及程度</h2>
+    </div>
+    <img src="images/dots.jpg" alt="AI在全球的普及程度" style="position:absolute;left:44vw;top:50%;transform:translateY(-50%);max-width:50vw;max-height:82vh;width:auto;height:auto;object-fit:contain;display:block;border-radius:22px;box-shadow:0 34px 88px rgba(var(--ink-rgb),.26),0 6px 20px rgba(var(--ink-rgb),.18);z-index:1">
+  </div>
+  <div class="foot">
+    <div class="title">AI在全球的普及程度</div>
+    <div>Global Adoption</div>
+  </div>
+</section>
+
+<section class="slide light" data-theme="light">
+  <div class="corner-motif">
+    <div class="halo cool"></div><div class="halo warm"></div><div class="desk"></div>
+    <div class="mug"></div><div class="note"></div><div class="stem"></div>
+    <div class="leaf a"></div><div class="leaf b"></div><div class="leaf c"></div>
+  </div>
+  <div class="chrome">
+    <div>Act II · Decision Support</div>
+    <div>05 / 20</div>
+  </div>
+  <div class="frame grid-2-7-5" style="padding-top:5.2vh;grid-template-columns:6.15fr 5.85fr;gap:1.9vw 2vh;align-items:stretch">
+    <div style="display:flex;flex-direction:column;gap:1.55vh;min-height:0">
+      <div class="eyebrow">Scenario A · Procurement Review</div>
+      <div class="accent-line" style="margin-top:.2vh"></div>
+      <h2 class="h-xl" style="font-size:3.28vw;line-height:1.16;max-width:96%">在高时效决策型任务场景<br>AI 能帮你做什么</h2>
+      <p class="lead" style="font-size:1.28vw;line-height:1.54;max-width:95%">你刚收到 3 家供应商报价，1 小时后就要参加采购评审会，准备会议的同时还要先给管理层一个初步意见：优先考虑哪一家，以及背后的判断依据和比较逻辑。</p>
+      <div class="story-panel" style="padding:1.95vh 1.4vw 1.7vh;flex:1">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2vw">
+          <div>
+            <div class="h-md" style="font-size:1.26vw">手头有哪些信息</div>
+            <div class="mini-list" style="margin-top:.9vh;gap:.72vh">
+              <div><i data-lucide="clipboard-list" class="ico-sm"></i><span><strong>采购需求</strong>：产品规格、数量、交期上限、质量门槛和决策目标。</span></div>
+              <div><i data-lucide="package-search" class="ico-sm"></i><span><strong>供应商报价</strong>：3 家供应商的材料单价、用量、损耗与物料明细。</span></div>
+              <div><i data-lucide="truck" class="ico-sm"></i><span><strong>工序与履约信息</strong>：工序费用、运费、交期、不良率和关键性能指标。</span></div>
+            </div>
+          </div>
+          <div>
+            <div class="h-md" style="font-size:1.26vw">有哪些注意事项</div>
+            <div class="mini-list" style="margin-top:.9vh;gap:.72vh">
+              <div><i data-lucide="scale" class="ico-sm"></i><span>材料分散、口径不一，交期和质量都不能只看表面价格。</span></div>
+              <div><i data-lucide="shield-alert" class="ico-sm"></i><span>交期和质量门槛是硬约束，不达标者即使便宜也不能推荐。</span></div>
+              <div><i data-lucide="timer-reset" class="ico-sm"></i><span>既要给管理层一句话结论，也要留下可追溯的计算依据和谈判抓手。</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.95vh;padding-top:5.35vh;min-height:0">
+      <div class="story-panel warm" style="padding:1.35vh 1.22vw 1.2vh">
+        <div class="meta" style="opacity:.62">Pre-Meeting Goal</div>
+        <div class="h-md" style="margin-top:.4vh;font-size:1.36vw;line-height:1.32">为了参加采购评审会，你需要先完成这 4 项准备</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.9vh .85vw;flex:1;align-content:stretch">
+        <div class="story-panel warm" style="padding:1.55vh 1.12vw 1.32vh;min-height:18.4vh">
+          <div class="meta" style="opacity:.62">01 · Normalization</div>
+          <div class="h-md" style="margin-top:.5vh;font-size:1.18vw">先统一比较口径</div>
+          <div class="body-zh" style="margin-top:.68vh;font-size:.92vw;line-height:1.56">把材料、工序、运费和良品率折算成单件到厂成本，避免不同报价口径造成误判。</div>
+        </div>
+        <div class="story-panel" style="padding:1.55vh 1.12vw 1.32vh;min-height:18.4vh">
+          <div class="meta" style="opacity:.62">02 · Risk Control</div>
+          <div class="h-md" style="margin-top:.5vh;font-size:1.18vw">再把风险点挑出来</div>
+          <div class="body-zh" style="margin-top:.68vh;font-size:.92vw;line-height:1.56">识别交期、质量门槛和隐性成本，先排除“看起来便宜，实际代价更高”的选项。</div>
+        </div>
+        <div class="story-panel" style="padding:1.55vh 1.12vw 1.32vh;min-height:18.4vh">
+          <div class="meta" style="opacity:.62">03 · Recommendation</div>
+          <div class="h-md" style="margin-top:.5vh;font-size:1.18vw">然后形成初步判断</div>
+          <div class="body-zh" style="margin-top:.68vh;font-size:.92vw;line-height:1.56">明确哪家更适合作为主供应商，哪家可作为备选，哪家应重谈或淘汰。</div>
+        </div>
+        <div class="story-panel warm" style="padding:1.55vh 1.12vw 1.32vh;min-height:18.4vh">
+          <div class="meta" style="opacity:.62">04 · Negotiation</div>
+          <div class="h-md" style="margin-top:.5vh;font-size:1.18vw">最后准备谈判策略</div>
+          <div class="body-zh" style="margin-top:.68vh;font-size:.92vw;line-height:1.56">沉淀最值得追问和议价的点，让下一轮供应商沟通和内部复核都有依据。</div>
+        </div>
+      </div>
+    </div>
+    <div class="callout" style="grid-column:1 / -1;padding:1.45vh 1.55vw 1.25vh;margin-top:.1vh">
+      <div class="q-big" style="font-size:1.36vw;line-height:1.42;white-space:nowrap">AI 在这里更适合承担前置分析工作：先统一口径、筛掉不合格项，再把判断依据整理成可汇报的结论。</div>
+      <span class="cite">Decision Support · Before Final Judgment</span>
+    </div>
+  </div>
+  <div class="foot">
+    <div class="title">采购比价：先把复杂材料整理成可判断结论</div>
+    <div>Procurement Review</div>
+  </div>
+</section>
+
+<section class="slide light" data-theme="light">
+  <div class="corner-motif">
+    <div class="halo cool"></div><div class="halo warm"></div><div class="desk"></div>
+    <div class="mug"></div><div class="note"></div><div class="stem"></div>
+    <div class="leaf a"></div><div class="leaf b"></div><div class="leaf c"></div>
+  </div>
+  <div class="chrome">
+    <div>Act II · Prompt with Structure</div>
+    <div>06 / 20</div>
+  </div>
+  <div class="frame" style="padding-top:5.4vh">
+    <div class="eyebrow">Six-Box Prompt Card</div>
+    <div class="accent-line" style="margin-top:2.2vh"></div>
+    <h2 class="h-xl" style="margin-top:2vh;font-size:5vw">怎样给 AI 下指令</h2>
+    <p class="lead" style="margin-top:1.4vh;max-width:72vw">要像面对一个刚接手工作、不清楚情况的同事那样交代任务</p>
+    <div class="soft-grid" style="margin-top:3.6vh">
+      <div class="soft-card">
+        <div class="cap">Background</div>
+        <div class="ttl">背景</div>
+        <div class="desc">你面对的是什么情况？你所处的角色是什么？上下文必须交代清楚。</div>
+      </div>
+      <div class="soft-card">
+        <div class="cap">Goal</div>
+        <div class="ttl">目标</div>
+        <div class="desc">希望 AI 最终帮你达成什么结果，不要只给“做一下”这种空指令，要给出尽量具体的步骤指引。</div>
+      </div>
+      <div class="soft-card">
+        <div class="cap">Audience</div>
+        <div class="ttl">受众</div>
+        <div class="desc">要向谁负责，产出内容交付给谁，决定了语气、重点、颗粒度和取舍方式。</div>
+      </div>
+      <div class="soft-card">
+        <div class="cap">Output</div>
+        <div class="ttl">输出</div>
+        <div class="desc">你要的是简报、表格、邮件、纪要、演讲稿，还是一份清晰的行动清单。</div>
+      </div>
+      <div class="soft-card">
+        <div class="cap">Guardrails</div>
+        <div class="ttl">约束</div>
+        <div class="desc">行为边界在哪里，哪些行动不被允许，哪些情况可以做合理推测，哪些地方必须标注“待确认”。</div>
+      </div>
+      <div class="soft-card">
+        <div class="cap">Reference</div>
+        <div class="ttl">样例</div>
+        <div class="desc">给出一个参考模板或例子，往往比“请写得专业一点”更有效，但要澄清要参考的是哪些方面。</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div class="title">结构化提示词</div>
+    <div>Prompt Card</div>
+  </div>
+</section>
+
+<section class="slide dark" data-theme="dark">
+  <div class="corner-motif">
+    <div class="halo cool"></div><div class="halo warm"></div><div class="desk"></div>
+    <div class="mug"></div><div class="note"></div><div class="stem"></div>
+    <div class="leaf a"></div><div class="leaf b"></div><div class="leaf c"></div>
+  </div>
+  <div class="chrome">
+    <div>Act II · Meeting Intelligence</div>
+    <div>07 / 20</div>
+  </div>
+  <div class="frame" style="padding-top:3.35vh">
+    <div class="eyebrow">Scenario B · Supplier Summit</div>
+    <div class="accent-line" style="margin-top:1.2vh"></div>
+    <h2 class="h-xl" style="margin-top:1vh;font-size:3.72vw;line-height:1.18;color:var(--paper)">多受众输出型任务场景下<br>AI 能多样化高效并行产出</h2>
+    <p class="lead" style="max-width:88vw;margin-top:1vh;color:rgba(var(--paper-rgb),.88);white-space:nowrap">
+      一场 300+ 人的全国供应商大会结束后，管理层、供应商、内部负责人和 PR 看到的必须是不同版本。
+    </p>
+    <div class="grid-4" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1.1vw;margin-top:1.15vh">
+      <div class="story-panel" style="padding:2.6vh 1.45vw 2.25vh">
+        <div class="cap" style="font-size:12px">A · High-Level Brief</div>
+        <div class="ttl" style="font-size:1.5vw">董事长一页简报</div>
+        <div class="desc" style="margin-top:1.05vh;font-size:1vw;line-height:1.5">只看关键结论、主要风险、后续动作。</div>
+      </div>
+      <div class="story-panel warm" style="padding:2.6vh 1.45vw 2.25vh">
+        <div class="cap" style="font-size:12px">B · External & Internal Minutes</div>
+        <div class="ttl" style="font-size:1.5vw">正式会后纪要</div>
+        <div class="desc" style="margin-top:1.05vh;font-size:1vw;line-height:1.5">面向参会供应商和内部相关人员，符合密级，统一口径，区分语气和格式。</div>
+      </div>
+      <div class="story-panel" style="padding:2.6vh 1.45vw 2.25vh">
+        <div class="cap" style="font-size:12px">C · Action List</div>
+        <div class="ttl" style="font-size:1.5vw">行动清单</div>
+        <div class="desc" style="margin-top:1.05vh;font-size:1vw;line-height:1.5">事项详情、责任人、截止时间，必须一目了然。</div>
+      </div>
+      <div class="story-panel" style="padding:2.6vh 1.45vw 2.25vh">
+        <div class="cap" style="font-size:12px">D · Risk Warning</div>
+        <div class="ttl" style="font-size:1.5vw">敏感表述预警</div>
+        <div class="desc" style="margin-top:1.05vh;font-size:1vw;line-height:1.5">哪些承诺不能直接对外说，哪些内容必须先过审批。</div>
+      </div>
+    </div>
+  </div>
+  <div class="pipeline-section" style="position:absolute;left:6vw;right:6vw;top:66.666vh;margin-top:0;padding-top:.45vh">
+    <div class="pipeline-label" style="margin-bottom:1.25vh;color:rgba(var(--paper-rgb),.72)">Workflow Pipeline</div>
+    <div class="pipeline" data-cols="5" style="gap:1vw">
+      <div class="step" style="gap:.58vh;padding-top:1vh"><div class="step-nb">01</div><div class="step-title" style="font-size:1.12vw">Collect</div><div class="step-desc" style="font-size:.78vw;line-height:1.38">素材集中进场</div></div>
+      <div class="step" style="gap:.58vh;padding-top:1vh"><div class="step-nb">02</div><div class="step-title" style="font-size:1.12vw">Transcribe</div><div class="step-desc" style="font-size:.78vw;line-height:1.38">转成可检索文本</div></div>
+      <div class="step" style="gap:.58vh;padding-top:1vh"><div class="step-nb">03</div><div class="step-title" style="font-size:1.12vw">Distill</div><div class="step-desc" style="font-size:.78vw;line-height:1.38">提炼核心信息和逻辑关系</div></div>
+      <div class="step" style="gap:.58vh;padding-top:1vh"><div class="step-nb">04</div><div class="step-title" style="font-size:1.12vw">Branch</div><div class="step-desc" style="font-size:.78vw;line-height:1.38">按受众拆分版本 转换形式</div></div>
+      <div class="step" style="gap:.58vh;padding-top:1vh"><div class="step-nb">05</div><div class="step-title" style="font-size:1.12vw">Review</div><div class="step-desc" style="font-size:.78vw;line-height:1.38">人审口径和边界</div></div>
+    </div>
+  </div>
+  <div class="callout" style="position:absolute;left:6vw;right:6vw;top:82vh;margin-top:0;padding:1.45vh 1.9vw 1.25vh">
+    <div class="q-big" style="white-space:nowrap">AI 组合工具的关键，是选择合适的工具、安排工序流程。</div>
+    <span class="cite">Workflow First</span>
+  </div>
+  <div class="foot">
+    <div class="title">泛会议记录场景</div>
+    <div>Audience-Specific Output</div>
+  </div>
+</section>
+
+
+
+<section class="slide dark" data-theme="dark">
+  <div class="corner-motif">
+    <div class="halo cool"></div><div class="halo warm"></div><div class="desk"></div>
+    <div class="mug"></div><div class="note"></div><div class="stem"></div>
+    <div class="leaf a"></div><div class="leaf b"></div><div class="leaf c"></div>
+  </div>
+  <div class="chrome">
+    <div>Act II · Crisis Handling</div>
+    <div>08 / 20</div>
+  </div>
+  <div class="frame" style="padding-top:5.2vh;display:grid;grid-template-rows:auto auto 1fr auto;gap:1.35vh">
+    <div style="display:flex;flex-direction:column;gap:1.2vh">
+      <div class="eyebrow">Scenario C · Under Pressure</div>
+      <h2 class="h-xl" style="font-size:3.3vw;color:var(--paper);white-space:nowrap;letter-spacing:-.02em">高压力应对型任务场景下 AI 能帮你从容应对挑战</h2>
+      <p class="lead" style="color:rgba(var(--paper-rgb),.9);max-width:88vw;font-size:1.42vw;line-height:1.42">你是大客户项目专员。周末期间，Top 3 客户的一笔关键订单突然面临延期风险：主管暂时失联，而你必须先扛住第一轮沟通。</p>
+    </div>
+    <div style="width:84vw;max-width:84vw;margin-left:auto;margin-right:auto;display:grid;grid-template-columns:41.5vw 41.5vw;gap:1.45vh 1vw;margin-top:1.15vh">
+        <div class="story-panel" style="width:100%;min-width:0;box-sizing:border-box;padding:2.1vh 1.2vw 1.8vh">
+          <div class="cap">Business Context</div>
+          <div class="ttl" style="font-size:1.68vw">订单与客户背景</div>
+          <div class="desc" style="font-size:max(12px,.96vw);line-height:1.56">8,000 套定制办公入驻套装，金额约 135 万美元。客户新园区启用在即，若交付不到位，会直接影响集中入驻与对外展示。</div>
+        </div>
+        <div class="story-panel warm" style="width:100%;min-width:0;box-sizing:border-box;padding:2.1vh 1.2vw 1.8vh">
+          <div class="cap">Deadline & Contract</div>
+          <div class="ttl" style="font-size:1.68vw">节点与合同约束</div>
+          <div class="desc" style="font-size:max(12px,.96vw);line-height:1.56">客户要求 6 月 18 日前到达欧洲仓，园区 6 月 25 日启用。延期超过 5 天有违约金，规格变更必须书面批准，重大风险必须及时通知并提出减损方案。</div>
+        </div>
+    </div>
+    <div style="width:84vw;max-width:84vw;margin-left:auto;margin-right:auto;display:grid;grid-template-columns:41.5vw 41.5vw;gap:1.45vh 1vw;margin-top:.35vh;align-content:start">
+        <div class="story-panel" style="width:100%;min-width:0;box-sizing:border-box;padding:2.05vh 1.2vw 1.75vh">
+          <div class="cap">Current Situation</div>
+          <div class="ttl" style="font-size:1.68vw">当前突发与可选资源</div>
+          <div class="mini-list" style="margin-top:.75vh;gap:.82vh">
+            <div style="font-size:max(11px,.9vw);line-height:1.48"><i data-lucide="ship-wheel" class="ico-sm"></i><span>关键 65W 模块受国际冲突导致的绕行与排期变化影响，预计晚到 12 天。</span></div>
+            <div style="font-size:max(11px,.9vw);line-height:1.48"><i data-lucide="boxes" class="ico-sm"></i><span>原规格成品可立即发 2,000 套；另有 3,500 套待模块到料后完工。</span></div>
+            <div style="font-size:max(11px,.9vw);line-height:1.48"><i data-lucide="refresh-cw" class="ico-sm"></i><span>替代模块 72 小时内可供 4,000 套，但降为 45W，且有轻微色差，需客户书面接受。</span></div>
+            <div style="font-size:max(11px,.9vw);line-height:1.48"><i data-lucide="plane" class="ico-sm"></i><span>空运 1,500 套原规格模块可行，但会增加约 5.7 万美元成本。</span></div>
+          </div>
+        </div>
+        <div class="story-panel warm" style="width:100%;min-width:0;box-sizing:border-box;padding:2.05vh 1.2vw 1.75vh">
+          <div class="cap">People & Pressure</div>
+          <div class="ttl" style="font-size:1.68vw">客户情绪与你的困境</div>
+          <div class="mini-list" style="margin-top:.75vh;gap:.82vh">
+            <div style="font-size:max(11px,.9vw);line-height:1.48"><i data-lucide="mail-warning" class="ico-sm"></i><span>客户已抄送全球采购总监和你司销售总监，焦虑点不是发脾气，而是担心项目失控。</span></div>
+            <div style="font-size:max(11px,.9vw);line-height:1.48"><i data-lucide="user-round-x" class="ico-sm"></i><span>周末期间直属主管暂时联系不上，你必须先稳住客户，但又不能越权承诺。</span></div>
+            <div style="font-size:max(11px,.9vw);line-height:1.48"><i data-lucide="folder-open-dot" class="ico-sm"></i><span>你手上只有客户投诉邮件、合同条款节选、库存表、供应商延误通知、物流通知、替代模块评估结论与历史沟通记录。</span></div>
+          </div>
+        </div>
+    </div>
+    <div style="width:84vw;max-width:84vw;margin:1.2vh auto 0">
+    <div class="callout" style="box-sizing:border-box;width:100%;padding:1.5vh 1.7vw;font-size:max(14px,1.05vw);line-height:1.42;display:flex;justify-content:space-between;align-items:baseline;gap:1.2vw;overflow:hidden">
+      <div class="q-big" style="font-size:1.62vw;line-height:1.2;white-space:nowrap">这个案例的关键不是立刻回复客户，而是先把局面、约束、选项与风险梳理清楚，再做出恰当的决策。</div>
+      <span class="cite" style="margin-top:0;flex:0 0 auto">Calm · Sequence · Guardrails</span>
+    </div>
+  </div>
+  <div class="foot">
+    <div class="title">压力下的紧急情况处理</div>
+    <div>Calm · Sequence · Guardrails</div>
+  </div>
+</section>
+
+<section class="slide light hero image-slide" data-theme="light">
+  <img src="images/09-novice-expert.png" alt="菜鸟与老手都能利用 AI 帮助自己">
+  <div class="chrome">
+    <div>Act III · Learning Paths</div>
+    <div>09 / 20</div>
+  </div>
+  <div class="foot">
+    <div class="title">菜鸟与老手都能利用 AI 帮助自己</div>
+    <div>Two Paths to Better Use</div>
+  </div>
+</section>
+
+<section class="slide light hero image-slide" data-theme="light">
+  <img src="images/11-ai-roles-infographic.png" alt="AI 的八种典型角色">
+  <div class="chrome">
+    <div>Act III · Roles AI Can Play</div>
+    <div>10 / 20</div>
+  </div>
+  <div class="foot">
+    <div class="title">AI 的八种典型角色</div>
+    <div>Role by Role</div>
+  </div>
+</section>
+
+<section class="slide light" data-theme="light">
+  <div class="corner-motif">
+    <div class="halo cool"></div><div class="halo warm"></div><div class="desk"></div>
+    <div class="mug"></div><div class="note"></div><div class="stem"></div>
+    <div class="leaf a"></div><div class="leaf b"></div><div class="leaf c"></div>
+  </div>
+  <div class="chrome">
+    <div>Act III · Human + AI</div>
+    <div>11 / 20</div>
+  </div>
+  <div class="frame" style="position:relative;min-height:80vh;padding-top:3.2vh">
+    <div class="eyebrow">Work with AI Like You Manage Talent</div>
+    <div class="accent-line" style="margin-top:1.15vh"></div>
+    <h2 class="h-xl" style="margin-top:.75vh;font-size:3.48vw;line-height:1.26">怎样与 AI 更好协作<br>把它当新人下属 不要当许愿池</h2>
+    <div class="split-55" style="margin-top:.85vh;align-items:start">
+      <div class="story-panel" style="padding:1.35vh 1.25vw 1.15vh">
+        <div class="ttl" style="font-size:1.6vw">AI 的典型特征</div>
+        <div class="mini-list">
+          <div><i data-lucide="brain" class="ico-sm"></i><span>知识面广，但不等于理解你的具体业务。</span></div>
+          <div><i data-lucide="zap" class="ico-sm"></i><span>执行很快，但容易夸大、自信、遗漏边界。</span></div>
+          <div><i data-lucide="book-open-text" class="ico-sm"></i><span>记忆有限，如果不给上下文，每次都像重新入职。</span></div>
+        </div>
+      </div>
+      <div class="story-panel warm" style="padding:1.35vh 1.25vw 1.15vh">
+        <div class="ttl" style="font-size:1.6vw">作为 manager / mentor 该做什么</div>
+        <div class="mini-list">
+          <div><i data-lucide="messages-square" class="ico-sm"></i><span>给足背景和工序，不要只扔一句“帮我写一下”。</span></div>
+          <div><i data-lucide="database-zap" class="ico-sm"></i><span>建立知识库，把专属材料喂给 AI，压低幻觉率。</span></div>
+          <div><i data-lucide="git-branch-plus" class="ico-sm"></i><span>允许多轮追问和修订，把结果逐步打磨成可交付版本。</span></div>
+        </div>
+      </div>
+    </div>
+    <div style="position:absolute;left:0;right:0;top:49vh;display:grid;grid-template-columns:repeat(3,1fr);gap:1.7vh .9vw;margin-top:0">
+      <div class="story-panel" style="padding:1.35vh 1.1vw 1.1vh">
+        <div class="meta" style="opacity:.62">01 · Raw Input</div>
+        <div class="h-md" style="margin-top:.34vh;font-size:1.18vw">原始任务</div>
+        <div class="body-zh" style="margin-top:.38vh;font-size:.92vw;line-height:1.45">先把手头任务自然地说出来，不追求完美。</div>
+      </div>
+      <div class="story-panel warm" style="padding:1.35vh 1.1vw 1.1vh">
+        <div class="meta" style="opacity:.62">02 · Structure</div>
+        <div class="h-md" style="margin-top:.34vh;font-size:1.18vw">六格提示卡</div>
+        <div class="body-zh" style="margin-top:.38vh;font-size:.92vw;line-height:1.45">把模糊需求补成背景、目标、受众、输出、约束和样例。</div>
+      </div>
+      <div class="story-panel warm" style="padding:1.35vh 1.1vw 1.1vh">
+        <div class="meta" style="opacity:.62">03 · Draft</div>
+        <div class="h-md" style="margin-top:.34vh;font-size:1.18vw">第一次生成</div>
+        <div class="body-zh" style="margin-top:.38vh;font-size:.92vw;line-height:1.45">先要一个能用初稿，而不是追求一步到位。</div>
+      </div>
+      <div class="story-panel" style="padding:1.35vh 1.1vw 1.1vh">
+        <div class="meta" style="opacity:.62">04 · Refine</div>
+        <div class="h-md" style="margin-top:.34vh;font-size:1.18vw">二次追问</div>
+        <div class="body-zh" style="margin-top:.38vh;font-size:.92vw;line-height:1.45">继续补、继续改、继续查风险，让草稿真正接近实战。</div>
+      </div>
+      <div class="story-panel" style="padding:1.35vh 1.1vw 1.1vh">
+        <div class="meta" style="opacity:.62">05 · Deliver</div>
+        <div class="h-md" style="margin-top:.34vh;font-size:1.18vw">落地成品</div>
+        <div class="body-zh" style="margin-top:.38vh;font-size:.92vw;line-height:1.45">明确“最后要发给谁，用来做什么动作”。</div>
+      </div>
+      <div class="story-panel warm" style="padding:1.35vh 1.1vw 1.1vh">
+        <div class="meta" style="opacity:.62">06 · Review</div>
+        <div class="h-md" style="margin-top:.34vh;font-size:1.18vw">人工校验</div>
+        <div class="body-zh" style="margin-top:.38vh;font-size:.92vw;line-height:1.45">事实、来源、边界、下一步是否清楚，最后必须有人负责。</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div class="title">怎样与 AI 更好地协作</div>
+    <div>Human + AI Workflow</div>
+  </div>
+</section>
+
+<section class="slide light" data-theme="light">
+  <div class="corner-motif">
+    <div class="halo cool"></div><div class="halo warm"></div><div class="desk"></div>
+    <div class="mug"></div><div class="note"></div><div class="stem"></div>
+    <div class="leaf a"></div><div class="leaf b"></div><div class="leaf c"></div>
+  </div>
+  <div class="chrome">
+    <div>Act III · Collaboration Method</div>
+    <div>12 / 20</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="eyebrow">Operating Model + Working Method</div>
+    <div class="accent-line" style="margin-top:2.2vh"></div>
+    <h2 class="h-xl" style="margin-top:2vh;font-size:3.95vw">把协作分工变成稳定工作方法</h2>
+    <p class="lead" style="margin-top:1.2vh;max-width:78vw;font-size:1.38vw">先看清 AI 在任务里承担哪一种分工，再把零散使用沉淀成可复制、可复盘、可持续优化的工作路径。</p>
+    <div style="display:grid;grid-template-columns:.92fr 1.08fr;gap:1.4vw;margin-top:2.2vh;align-items:start">
+      <div style="display:flex;flex-direction:column;gap:1vh">
+        <div class="story-panel" style="padding:1.8vh 1.25vw 1.55vh">
+          <div class="meta" style="opacity:.62">01 · Execution</div>
+          <div class="h-md" style="margin-top:.45vh;font-size:1.48vw">执行分担</div>
+          <div class="body-zh" style="margin-top:.65vh;font-size:.96vw;line-height:1.56">适合规则清晰、流程固定、重复度高的工作，优先承接整理、筛选、对比、归纳等事务性环节。</div>
+        </div>
+        <div class="story-panel warm" style="padding:1.8vh 1.25vw 1.55vh">
+          <div class="meta" style="opacity:.62">02 · Assessment</div>
+          <div class="h-md" style="margin-top:.45vh;font-size:1.48vw">组织协同</div>
+          <div class="body-zh" style="margin-top:.65vh;font-size:.96vw;line-height:1.56">适合同一个事件需要面向不同对象输出不同内容，重点提升版本拆分、形式转换、逻辑表达和输出编排效率。</div>
+        </div>
+        <div class="story-panel" style="padding:1.8vh 1.25vw 1.55vh">
+          <div class="meta" style="opacity:.62">03 · Coordination</div>
+          <div class="h-md" style="margin-top:.45vh;font-size:1.48vw">研判支持</div>
+          <div class="body-zh" style="margin-top:.65vh;font-size:.96vw;line-height:1.56">适合情况复杂、时效要求高的工作，先完成梳理、识别、提炼和判断，帮助更快形成初步结论和对策。</div>
+        </div>
+      </div>
+      <div>
+        <div class="meta-row" style="max-width:100%;line-height:1.8;margin-top:.2vh">
+          <span>边界判断</span>
+          <span>→</span>
+          <span>任务表达</span>
+          <span>→</span>
+          <span>前置处理</span>
+          <span>→</span>
+          <span>形成交付</span>
+          <span>→</span>
+          <span>流程协同</span>
+          <span>→</span>
+          <span>沉淀复用</span>
+        </div>
+        <div style="margin-top:1.15vh">
+          <div class="rowline" style="padding:1.28vh 0;grid-template-columns:1.25fr 2.45fr 1.15fr">
+            <div class="k" style="font-size:1.25vw">先判断边界</div>
+            <div class="v" style="font-size:.95vw">先分清它适合做什么、不适合做什么，判断、责任和事实边界不能外包。</div>
+            <div class="m">Boundary</div>
+          </div>
+          <div class="rowline" style="padding:1.28vh 0;grid-template-columns:1.25fr 2.45fr 1.15fr">
+            <div class="k" style="font-size:1.25vw">再表达任务</div>
+            <div class="v" style="font-size:.95vw">把背景、目标、约束、输出和预期讲清楚，先把任务说明白。</div>
+            <div class="m">Prompting</div>
+          </div>
+          <div class="rowline" style="padding:1.28vh 0;grid-template-columns:1.25fr 2.45fr 1.15fr">
+            <div class="k" style="font-size:1.25vw">先做前置处理</div>
+            <div class="v" style="font-size:.95vw">用于资料理解、信息提炼、任务拆解、初步判断和关键问题识别。</div>
+            <div class="m">Analysis</div>
+          </div>
+          <div class="rowline" style="padding:1.28vh 0;grid-template-columns:1.25fr 2.45fr 1.15fr">
+            <div class="k" style="font-size:1.25vw">再形成交付</div>
+            <div class="v" style="font-size:.95vw">不只停留在对话，要能生成初稿、表格、纪要、清单和可直接使用的内容。</div>
+            <div class="m">Output</div>
+          </div>
+          <div class="rowline" style="padding:1.28vh 0;grid-template-columns:1.25fr 2.45fr 1.15fr">
+            <div class="k" style="font-size:1.25vw">再连成流程</div>
+            <div class="v" style="font-size:.95vw">把查找、整理、判断、起草、复核连接起来，与人配合完成多步骤任务。</div>
+            <div class="m">Workflow</div>
+          </div>
+          <div class="rowline" style="padding:1.28vh 0;grid-template-columns:1.25fr 2.45fr 1.15fr">
+            <div class="k" style="font-size:1.25vw">最后沉淀复用</div>
+            <div class="v" style="font-size:.95vw">把成熟做法固定成模板、提示词、知识库和流程，减少重复调试。</div>
+            <div class="m">Reuse</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div class="title">协作分工与工作方法</div>
+    <div>Collaboration Method</div>
+  </div>
+</section>
+
+
+
+<section class="slide dark" data-theme="dark">
+  <div class="corner-motif">
+    <div class="halo cool"></div><div class="halo warm"></div><div class="desk"></div>
+    <div class="mug"></div><div class="note"></div><div class="stem"></div>
+    <div class="leaf a"></div><div class="leaf b"></div><div class="leaf c"></div>
+  </div>
+  <div class="chrome">
+    <div>Act IV · Tools Landscape</div>
+    <div>13 / 20</div>
+  </div>
+  <div class="frame" style="padding-top:5.2vh">
+    <div class="eyebrow">Tooling without Noise</div>
+    <div class="accent-line" style="margin-top:2.2vh"></div>
+    <h2 class="h-xl" style="margin-top:2vh;font-size:4.7vw;color:var(--paper)">找到最顺手的 AI 工具</h2>
+    <p class="lead" style="max-width:62vw;margin-top:1.6vh;color:rgba(var(--paper-rgb),.86)">先建立对各类工具的基础认知，再结合具体应用场景判断和试用。</p>
+    <div class="tool-columns" style="grid-template-columns:repeat(4,1fr);gap:1.2vh .9vw;margin-top:2.4vh">
+      <div class="tool-card" style="min-height:12.2vh;padding:1.35vh .95vw 1.1vh"><div class="cat">Comprehensive Q&A</div><div class="head" style="font-size:1.08vw">综合问答</div><div class="stack" style="font-size:max(11px,.74vw)">ChatGPT · Gemini · Qwen · DeepSeek</div><div class="use" style="font-size:max(11px,.72vw)">百科知识、亲子关系、健身饮食计划、专业文献解读</div></div>
+      <div class="tool-card" style="min-height:12.2vh;padding:1.35vh .95vw 1.1vh"><div class="cat">AI Imaging</div><div class="head" style="font-size:1.08vw">AI作图</div><div class="stack" style="font-size:max(11px,.74vw)">GPT Image 2 · Nano Banana 2 · 即梦</div><div class="use" style="font-size:max(11px,.72vw)">兴趣娱乐、信息图、知识拆解、PPT 制作</div></div>
+      <div class="tool-card" style="min-height:12.2vh;padding:1.35vh .95vw 1.1vh"><div class="cat">AI Video</div><div class="head" style="font-size:1.08vw">AI视频</div><div class="stack" style="font-size:max(11px,.74vw)">即梦 · 可灵 · LibTV</div><div class="use" style="font-size:max(11px,.72vw)">兴趣娱乐、电商营销</div></div>
+      <div class="tool-card" style="min-height:12.2vh;padding:1.35vh .95vw 1.1vh"><div class="cat">AI Music</div><div class="head" style="font-size:1.08vw">AI音乐</div><div class="stack" style="font-size:max(11px,.74vw)">Suno · Mureka</div><div class="use" style="font-size:max(11px,.72vw)">兴趣娱乐</div></div>
+
+      <div class="tool-card" style="min-height:12.2vh;padding:1.35vh .95vw 1.1vh"><div class="cat">General Design</div><div class="head" style="font-size:1.08vw">通用设计</div><div class="stack" style="font-size:max(11px,.74vw)">Lovart · 星流</div><div class="use" style="font-size:max(11px,.72vw)">品牌视觉设计、电商营销内容、网页 UI、广告片、3D 手办</div></div>
+      <div class="tool-card" style="min-height:12.2vh;padding:1.35vh .95vw 1.1vh"><div class="cat">3D Modeling</div><div class="head" style="font-size:1.08vw">3D建模</div><div class="stack" style="font-size:max(11px,.74vw)">Hi3D · Hyper3D (Rodin)</div><div class="use" style="font-size:max(11px,.72vw)">三维内容与模型生成</div></div>
+      <div class="tool-card" style="min-height:12.2vh;padding:1.35vh .95vw 1.1vh"><div class="cat">Text to Audio</div><div class="head" style="font-size:1.08vw">文字转音频</div><div class="stack" style="font-size:max(11px,.74vw)">ElevenLabs · MiniMax Audio</div><div class="use" style="font-size:max(11px,.72vw)">文本配音、音频表达</div></div>
+      <div class="tool-card" style="min-height:12.2vh;padding:1.35vh .95vw 1.1vh"><div class="cat">Audio to Text</div><div class="head" style="font-size:1.08vw">音频转文字</div><div class="stack" style="font-size:max(11px,.74vw)">通义听悟 · 飞书妙记</div><div class="use" style="font-size:max(11px,.72vw)">会议记录、录音整理</div></div>
+
+      <div class="tool-card" style="min-height:12.2vh;padding:1.35vh .95vw 1.1vh"><div class="cat">Knowledge Base</div><div class="head" style="font-size:1.08vw">知识库</div><div class="stack" style="font-size:max(11px,.74vw)">NotebookLM</div><div class="use" style="font-size:max(11px,.72vw)">孩子作业辅导、兴趣培养、个人学习成长、PPT 制作</div></div>
+      <div class="tool-card" style="min-height:12.2vh;padding:1.35vh .95vw 1.1vh"><div class="cat">Commerce Agent</div><div class="head" style="font-size:1.08vw">电商智能体</div><div class="stack" style="font-size:max(11px,.74vw)">Accio Work</div><div class="use" style="font-size:max(11px,.72vw)">选品调研、供应链管理、商铺运营、客户管理、内容营销、定时报告</div></div>
+      <div class="tool-card" style="min-height:12.2vh;padding:1.35vh .95vw 1.1vh"><div class="cat">Light Workflow</div><div class="head" style="font-size:1.08vw">轻量工作流/零代码开发</div><div class="stack" style="font-size:max(11px,.74vw)">扣子（Coze） · 秒哒 · 灵光</div><div class="use" style="font-size:max(11px,.72vw)">个人工具搭建、想法验证、软件原型展示</div></div>
+      <div class="tool-card" style="min-height:12.2vh;padding:1.35vh .95vw 1.1vh"><div class="cat">Coding IDE</div><div class="head" style="font-size:1.08vw">编程IDE工具</div><div class="stack" style="font-size:max(11px,.74vw)">Cursor · TRAE · Workbuddy</div><div class="use" style="font-size:max(11px,.72vw)">编程辅助与开发环境增强</div></div>
+
+      <div class="tool-card" style="min-height:12.2vh;padding:1.35vh .95vw 1.1vh;grid-column:span 4">
+        <div class="cat">Native AI Agent</div>
+        <div class="head" style="font-size:1.15vw">最强AI原生智能体</div>
+        <div class="stack" style="font-size:max(11px,.8vw)">Claude Code · Codex</div>
+        <div class="use" style="font-size:max(11px,.74vw)">把复杂需求落成可执行结果，适合自动化、工具构建、流程衔接与真实交付场景</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div class="title">AI 工具推荐</div>
+    <div>Choose by Scenario</div>
+  </div>
+</section>
+
+<section class="slide light hero image-slide" data-theme="light">
+  <img src="images/14-coding-agent.png" alt="Coding Agent The future is coming">
+  <div class="chrome">
+    <div>Act IV · Coding Agent</div>
+    <div>14 / 20</div>
+  </div>
+  <div class="foot">
+    <div class="title">Coding Agent 从写代码工具到个人软件工厂</div>
+    <div>From Coding Help to Capability</div>
+  </div>
+</section>
+
+<section class="slide light hero image-slide" data-theme="light">
+  <img src="images/agent.png" alt="Agent">
+  <div class="chrome">
+    <div>Act IV · Agent</div>
+    <div>15 / 20</div>
+  </div>
+  <div class="foot">
+    <div class="title">Agent</div>
+    <div>AI Agent</div>
+  </div>
+</section>
+
+<section class="slide light" data-theme="light">
+  <div class="corner-motif">
+    <div class="halo cool"></div><div class="halo warm"></div><div class="desk"></div>
+    <div class="mug"></div><div class="note"></div><div class="stem"></div>
+    <div class="leaf a"></div><div class="leaf b"></div><div class="leaf c"></div>
+  </div>
+  <div class="chrome">
+    <div>Act IV · Work Scenes</div>
+    <div>16 / 20</div>
+  </div>
+  <div class="frame" style="position:relative;min-height:80vh;padding-top:1.4vh">
+    <div style="position:absolute;left:-1vw;top:.4vh;width:89vw;height:77vh;border-radius:38px;background:linear-gradient(135deg,rgba(var(--accent-rgb),.1),rgba(var(--warm-rgb),.14));filter:blur(.2px);opacity:.72"></div>
+    <div style="position:absolute;left:-2.4vw;right:-1.6vw;top:-.8vh;bottom:0">
+      <img src="images/boss.png" alt="Boss" style="position:absolute;left:0;top:0;width:37.6vw;height:auto;border-radius:18px;box-shadow:0 22px 54px rgba(var(--ink-rgb),.22),0 4px 14px rgba(var(--ink-rgb),.16);z-index:2">
+      <img src="images/colleague.png" alt="Colleague" style="position:absolute;left:32vw;top:-1.2vh;width:37.8vw;height:auto;border-radius:18px;box-shadow:0 22px 54px rgba(var(--ink-rgb),.22),0 4px 14px rgba(var(--ink-rgb),.16);z-index:5">
+      <img src="images/ex.png" alt="Example" style="position:absolute;left:.5vw;top:39.2vh;width:38.2vw;height:auto;border-radius:18px;box-shadow:0 22px 54px rgba(var(--ink-rgb),.22),0 4px 14px rgba(var(--ink-rgb),.16);z-index:4">
+      <img src="images/feiman.png" alt="Feiman" style="position:absolute;left:32.6vw;top:40.8vh;width:37.6vw;height:auto;border-radius:18px;box-shadow:0 22px 54px rgba(var(--ink-rgb),.2),0 4px 14px rgba(var(--ink-rgb),.15);z-index:6">
+      <img src="images/zhangxuefeng.png" alt="Zhang Xuefeng" style="position:absolute;right:-2vw;top:-1.8vh;width:auto;height:82vh;border-radius:20px;box-shadow:0 26px 64px rgba(var(--ink-rgb),.25),0 5px 18px rgba(var(--ink-rgb),.18);z-index:6">
+    </div>
+  </div>
+  <div class="foot">
+    <div class="title">场景素材拼贴</div>
+    <div>Work Scenes</div>
+  </div>
+</section>
+
+<section class="slide light hero image-slide" data-theme="light">
+  <img src="images/office-agent.png" alt="Office Agent">
+  <div class="chrome">
+    <div>Act IV · Office Agent</div>
+    <div>17 / 20</div>
+  </div>
+  <div class="foot">
+    <div class="title">智能办公助手</div>
+    <div>AI Agent · Automation</div>
+  </div>
+</section>
+
+<section class="slide light hero image-slide" data-theme="light">
+  <img src="images/Path.png" alt="Path">
+  <div class="chrome">
+    <div>Act IV · Path</div>
+    <div>18 / 20</div>
+  </div>
+  <div class="foot">
+    <div class="title">Path</div>
+    <div>Learning Path</div>
+  </div>
+</section>
+
+<section class="slide light hero image-slide" data-theme="light">
+  <img src="images/16-key-takeaway.png" alt="Key Takeaway">
+  <div class="chrome">
+    <div>Act V · Key Takeaway</div>
+    <div>19 / 20</div>
+  </div>
+  <div class="foot">
+    <div class="title">关键结论</div>
+    <div>Summary · Boundaries · Workflow</div>
+  </div>
+</section>
+
+<section class="slide dark hero" data-theme="dark">
+  <div class="corner-motif">
+    <div class="halo cool"></div><div class="halo warm"></div><div class="desk"></div>
+    <div class="mug"></div><div class="note"></div><div class="stem"></div>
+    <div class="leaf a"></div><div class="leaf b"></div><div class="leaf c"></div>
+  </div>
+  <div class="chrome">
+    <div>Act V · Closing</div>
+    <div>20 / 20</div>
+  </div>
+  <div class="frame" style="position:relative;z-index:2;display:grid;align-content:center;min-height:80vh;gap:3.2vh;max-width:88vw">
+    <div class="eyebrow" style="width:max-content">Closing Thought</div>
+    <h1 class="h-hero" style="font-size:8.2vw;line-height:.96;max-width:88vw;color:var(--paper);white-space:nowrap">感谢聆听</h1>
+    <div class="h-hero-en" style="font-size:3.2vw;letter-spacing:-.015em;color:rgba(var(--paper-rgb),.78);white-space:nowrap">Attention Is All You Need.</div>
+    <div style="display:grid;gap:2vh;max-width:47vw;color:rgba(var(--paper-rgb),.86)">
+      <p class="lead" style="max-width:46vw;color:inherit">AI 不会取代你，但会用 AI 的人会。</p>
+      <p class="lead" style="max-width:82vw;color:inherit;white-space:nowrap">不必盲目追逐新工具，重要的是建立表达、协作与复用的方法，并保持独立思考和判断。</p>
+    </div>
+    <div class="meta-row" style="color:rgba(var(--paper-rgb),.72)">
+      <span>王亮</span><span>·</span><span>AI-Enabled Work</span><span>·</span><span>2026.05.21</span>
+    </div>
+  </div>
+  <div class="foot">
+    <div class="title">结束页致谢</div>
+    <div>Closing Thought</div>
+  </div>
+</section>
+
+</div>
+
+<div id="nav"></div>
+
+<script>
+(function(){
+  const key='staples-slide-auth';
+  const pass='sitaipusi';
+  const unlock=()=>document.body.classList.remove('auth-locked');
+  if(sessionStorage.getItem(key)==='ok') unlock();
+  window.addEventListener('DOMContentLoaded',()=>{
+    const form=document.getElementById('auth-form');
+    const input=document.getElementById('auth-password');
+    const error=document.getElementById('auth-error');
+    form.addEventListener('submit',(event)=>{
+      event.preventDefault();
+      if(input.value===pass){
+        sessionStorage.setItem(key,'ok');
+        unlock();
+        return;
+      }
+      error.textContent='口令不正确，请重试。';
+      input.value='';
+      input.focus();
+    });
+  });
+})();
+
+/* =============== WebGL 双背景 ===============
+   深色页：Holographic Dispersion（全息色散 · 钛金暗流）—— 彩虹微扰、鼠标径向涟漪
+   浅色页：Spiral Vortex（旋转涡流 · 银色珍珠）—— domain-warp 流动、无中心
+   修改风格请参考 references/webgl-backgrounds.md
+*/
+const VS = `attribute vec2 position;void main(){gl_Position=vec4(position,0.0,1.0);}`;
+
+const FS_DARK = `precision highp float;
+uniform vec2 u_resolution;uniform float u_time;uniform vec2 u_mouse;
+vec3 palette(float t,vec3 a,vec3 b,vec3 c,vec3 d){return a+b*cos(6.28318*(c*t+d));}
+void main(){
+  vec2 uv=gl_FragCoord.xy/u_resolution.xy;
+  vec2 p=uv*2.0-1.0;p.x*=u_resolution.x/u_resolution.y;
+  vec2 m=u_mouse*2.0-1.0;m.x*=u_resolution.x/u_resolution.y;
+  float md=length(p-m);
+  float mr=sin(md*15.0-u_time*4.0)*exp(-md*3.0);p+=mr*0.08;
+  vec2 p0=p;
+  for(float i=1.0;i<4.0;i++){
+    p.x+=0.1/i*sin(i*3.0*p.y+u_time*0.4)+0.05;
+    p.y+=0.1/i*cos(i*2.0*p.x+u_time*0.3)-0.05;
+  }
+  float r=length(p);float ang=atan(p.y,p.x);
+  vec3 a=vec3(0.12,0.12,0.13);
+  vec3 b=vec3(0.03,0.04,0.05);
+  vec3 c=vec3(1.0,1.0,1.0);
+  vec3 d=vec3(0.1,0.2,0.4);
+  vec3 col=palette(r*1.5+p0.x*0.5+u_time*0.1,a,b,c,d);
+  float disp=sin(r*25.0-u_time*1.5+ang*2.0)*0.5+0.5;
+  col+=vec3(disp*0.015,disp*0.01,disp*0.02);
+  float hi=pow(sin(p.x*4.0+p.y*3.0+u_time)*0.5+0.5,8.0);
+  col+=hi*0.08;
+  vec3 base=vec3(0.05,0.05,0.06);
+  col=mix(base,col,0.85);
+  gl_FragColor=vec4(col,1.0);
+}`;
+
+const FS_LIGHT = `precision highp float;
+uniform vec2 u_resolution;uniform float u_time;uniform vec2 u_mouse;
+float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float noise(vec2 p){
+  vec2 i=floor(p),f=fract(p);
+  float a=hash(i),b=hash(i+vec2(1,0));
+  float c=hash(i+vec2(0,1)),d=hash(i+vec2(1,1));
+  vec2 u=f*f*(3.0-2.0*f);
+  return mix(a,b,u.x)+(c-a)*u.y*(1.0-u.x)+(d-b)*u.x*u.y;
+}
+float fbm(vec2 p){
+  float v=0.0,a=0.5;
+  mat2 m=mat2(0.80,0.60,-0.60,0.80);
+  for(int i=0;i<5;i++){v+=a*noise(p);p=m*p*2.02;a*=0.5;}
+  return v;
+}
+void main(){
+  vec2 uv=gl_FragCoord.xy/u_resolution.xy;
+  vec2 p=uv;p.x*=u_resolution.x/u_resolution.y;
+  vec2 m=u_mouse;m.x*=u_resolution.x/u_resolution.y;
+  vec2 md=p-m;float dl=length(md);
+  p+=normalize(md+vec2(0.0001))*exp(-dl*5.0)*0.03;
+  vec2 q=vec2(fbm(p*1.8+u_time*0.07),fbm(p*1.8+vec2(5.2,1.3)+u_time*0.06));
+  vec2 r=vec2(fbm(p*2.0+q*1.3+vec2(1.7,9.2)+u_time*0.05),
+              fbm(p*2.0+q*1.3+vec2(8.3,2.8)+u_time*0.04));
+  float f=fbm(p*2.2+r*1.5);
+  vec3 silverDark=vec3(0.86,0.85,0.84);
+  vec3 paper=vec3(0.955,0.945,0.925);
+  vec3 col=mix(silverDark,paper,f);
+  float ph=r.x*2.2+u_time*0.35;
+  col+=vec3(0.78,0.62,0.92)*sin(ph)*0.055;
+  col+=vec3(0.55,0.72,0.95)*sin(ph*0.8+2.0)*0.05;
+  float hl=smoothstep(0.48,0.92,f);
+  col+=hl*0.06;
+  gl_FragColor=vec4(col,1.0);
+}`;
+
+const mouse={x:0.5,y:0.5};
+addEventListener('mousemove',e=>{mouse.x=e.clientX/innerWidth;mouse.y=e.clientY/innerHeight});
+
+function bootGL(canvasId, fsSrc){
+  const canvas=document.getElementById(canvasId);
+  const gl=canvas.getContext('webgl',{alpha:false,antialias:true});
+  if(!gl) return ()=>false;
+  const mk=(t,s)=>{const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);return sh};
+  const prog=gl.createProgram();
+  gl.attachShader(prog,mk(gl.VERTEX_SHADER,VS));
+  gl.attachShader(prog,mk(gl.FRAGMENT_SHADER,fsSrc));
+  gl.linkProgram(prog);gl.useProgram(prog);
+  const buf=gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
+  const pos=gl.getAttribLocation(prog,'position');
+  gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);
+  const lRes=gl.getUniformLocation(prog,'u_resolution');
+  const lT=gl.getUniformLocation(prog,'u_time');
+  const lM=gl.getUniformLocation(prog,'u_mouse');
+  const resize=()=>{
+    const d=Math.min(window.devicePixelRatio||1,2);
+    canvas.width=innerWidth*d;canvas.height=innerHeight*d;
+    gl.viewport(0,0,canvas.width,canvas.height);
+  };
+  addEventListener('resize',resize);resize();
+  return (tSec)=>{
+    gl.uniform2f(lRes,canvas.width,canvas.height);
+    gl.uniform1f(lT,tSec);
+    gl.uniform2f(lM,mouse.x,1-mouse.y);
+    gl.drawArrays(gl.TRIANGLES,0,6);
+    return true;
+  };
+}
+const drawDark=bootGL('bg-dark',FS_DARK);
+const drawLight=bootGL('bg-light',FS_LIGHT);
+const t0=Date.now();
+(function loop(){
+  const t=(Date.now()-t0)/1000;
+  drawDark(t);drawLight(t);
+  requestAnimationFrame(loop);
+})();
+
+// =============== 导航（翻页 / 圆点 / 键盘 / 滚轮 / 触屏） ===============
+const deck=document.getElementById('deck');
+const slides=deck.querySelectorAll('.slide');
+const nav=document.getElementById('nav');
+let idx=0,total=slides.length,lock=false;
+
+// 关键：矫正 deck 宽度为 total * 100vw，否则翻页会错位
+deck.style.width=(total*100)+'vw';
+
+slides.forEach((slide,i)=>{
+  const pageNode = slide.querySelector('.chrome > div:last-child');
+  if(pageNode){
+    pageNode.textContent = String(i+1).padStart(2,'0') + ' / ' + total;
+  }
+});
+
+slides.forEach((s,i)=>{
+  const b=document.createElement('button');
+  b.className='dot';b.dataset.i=i;b.setAttribute('aria-label','Page '+(i+1));
+  b.onclick=()=>go(i);
+  nav.appendChild(b);
+});
+
+function go(n){
+  if(lock)return;
+  idx=Math.max(0,Math.min(total-1,n));
+  deck.style.transform=`translateX(${-idx*100}vw)`;
+  nav.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
+  /* 主题切换：优先读 data-theme，其次从 class（light/dark）推断 */
+  const el=slides[idx];
+  const th=el.dataset.theme || (el.classList.contains('light')?'light':(el.classList.contains('dark')?'dark':'dark'));
+  document.body.classList.toggle('light-bg',th==='light');
+  lock=true;setTimeout(()=>lock=false,700);
+}
+
+/* =============== ESC 索引视图 =============== */
+let overviewOn=false;
+const ov=document.createElement('div');
+ov.id='overview';
+ov.style.cssText='position:fixed;inset:0;z-index:100;background:rgba(var(--ink-rgb),.92);backdrop-filter:blur(12px);display:none;overflow-y:auto;padding:4vh 4vw';
+document.body.appendChild(ov);
+
+function buildOverview(){
+  ov.innerHTML='';
+  const grid=document.createElement('div');
+  grid.style.cssText='display:grid;grid-template-columns:repeat(4,1fr);gap:2vh 1.6vw;max-width:90vw;margin:0 auto';
+  slides.forEach((s,i)=>{
+    const card=document.createElement('div');
+    card.style.cssText='cursor:pointer;border-radius:6px;overflow:hidden;border:2px solid '+(i===idx?'rgba(var(--paper-rgb),.8)':'rgba(var(--paper-rgb),.15)')+';transition:border-color .2s';
+    card.onmouseenter=()=>card.style.borderColor='rgba(var(--paper-rgb),.6)';
+    card.onmouseleave=()=>card.style.borderColor=i===idx?'rgba(var(--paper-rgb),.8)':'rgba(var(--paper-rgb),.15)';
+    const wrap=document.createElement('div');
+    wrap.style.cssText='width:100%;aspect-ratio:16/9;overflow:hidden;position:relative;pointer-events:none;background:'+(s.classList.contains('light')?'var(--paper)':'var(--ink)');
+    const clone=s.cloneNode(true);
+    clone.style.cssText='width:100vw;height:100vh;transform:scale('+(1/4.5)+');transform-origin:top left;position:absolute;top:0;left:0;pointer-events:none';
+    wrap.appendChild(clone);
+    const label=document.createElement('div');
+    label.style.cssText='padding:6px 10px;font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--paper);opacity:.7';
+    label.textContent=(i+1)+' / '+total;
+    card.appendChild(wrap);
+    card.appendChild(label);
+    card.onclick=()=>{toggleOverview();go(i)};
+    grid.appendChild(card);
+  });
+  ov.appendChild(grid);
+}
+
+function toggleOverview(){
+  overviewOn=!overviewOn;
+  if(overviewOn){buildOverview();ov.style.display='block';}
+  else{ov.style.display='none';}
+}
+
+addEventListener('keydown',e=>{
+  if(e.key==='Escape'){e.preventDefault();toggleOverview();return;}
+  if(overviewOn)return;
+  if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '||e.key==='ArrowDown')go(idx+1);
+  if(e.key==='ArrowLeft'||e.key==='PageUp'||e.key==='ArrowUp')go(idx-1);
+  if(e.key==='Home')go(0);
+  if(e.key==='End')go(total-1);
+});
+
+let wheelTO=null,wheelAcc=0;
+addEventListener('wheel',e=>{
+  wheelAcc+=e.deltaY+e.deltaX;
+  if(Math.abs(wheelAcc)>50){go(idx+(wheelAcc>0?1:-1));wheelAcc=0;}
+  clearTimeout(wheelTO);wheelTO=setTimeout(()=>wheelAcc=0,150);
+},{passive:true});
+
+let tx=0,ty=0;
+addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
+addEventListener('touchend',e=>{
+  const dx=(e.changedTouches[0].clientX-tx);
+  const dy=(e.changedTouches[0].clientY-ty);
+  if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy))go(idx+(dx<0?1:-1));
+},{passive:true});
+
+go(0);
+</script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script>lucide.createIcons();</script>
+</body>
+</html>
